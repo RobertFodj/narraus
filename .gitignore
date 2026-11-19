@@ -1,0 +1,15 @@
+/target/
+/uploads/
+.idea/
+.vscode/
+node_modules/
+src/main/frontend/generated/
+vite.generated.ts
+vite.config.ts
+package*.json
+tsconfig.json
+types.d.ts
+*.iml
+
+# Claude Code: henkilökohtaiset asetukset
+.claude/settings.local.json
