@@ -390,3 +390,35 @@ a.event-card:hover {
     justify-content: flex-start;
   }
 }
+
+/*
+ * Sivupaneelin alatunniste: kiinni paneelin alareunassa (paneeli on pystysuuntainen flex), nimi ja
+ * Kirjaudu ulos valikon rivien kaltaisena rivinä. Mitat vastaavat valikon rivejä: täyte 6px 8px,
+ * väli 8px, kulma 9px, fontti 14px/500, väri second. Kuvake osuu samaan kohtaan kuin valikon kuvakkeet.
+ */
+.drawer-footer {
+  margin-top: auto;
+  padding: 8px 0 max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--vaadin-border-color-secondary, rgba(0, 0, 0, 0.08));
+  align-items: stretch;
+}
+
+.drawer-footer .drawer-user {
+  padding: 6px 8px 4px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.drawer-footer .drawer-logout {
+  width: 100%;
+  margin: 0;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--vaadin-text-color-secondary);
+  --vaadin-button-text-color: var(--vaadin-text-color-secondary);
+}

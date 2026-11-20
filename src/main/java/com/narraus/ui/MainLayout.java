@@ -75,16 +75,17 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         }
         addToDrawer(nav);
 
+        // Alatunniste kiinni paneelin alareunassa: nimi ja Kirjaudu ulos valikon rivien kaltaisena rivinä
+        // (mitat ja värit ovat tyyleissä: .drawer-footer, .drawer-user, .drawer-logout)
         Button logout = new Button("Kirjaudu ulos", VaadinIcon.SIGN_OUT.create(), e -> currentUser.logout());
         logout.addThemeVariants(ButtonVariant.TERTIARY);
-        // Nimi omalla rivillään ja Kirjaudu ulos -nappi sen alla (ei vierekkäin, jolloin rivi meni vinoon)
+        logout.addClassName("drawer-logout");
         Span userName = new Span(me.getDisplayName());
-        userName.getStyle().set("font-weight", "600");
+        userName.addClassName("drawer-user");
         VerticalLayout footer = new VerticalLayout(userName, logout);
         footer.addClassName("drawer-footer");
-        footer.setPadding(true);
+        footer.setPadding(false);
         footer.setSpacing(false);
-        footer.setAlignItems(FlexComponent.Alignment.START);
         addToDrawer(footer);
 
         refreshBadges();

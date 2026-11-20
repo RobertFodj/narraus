@@ -60,4 +60,41 @@ class DrawerFooterTest {
             assertTrue(window.find(Button.class).all().stream().anyMatch(b -> "Kirjaudu ulos".equals(b.getText())));
         }
     }
+
+    @Test
+    void footerParts_haveTheClassesTheStylesRelyOn() {
+        AppUser me = TestData.newUser(users, "Minä");
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            window.navigate(FeedView.class);
+
+            Button logout = window.find(Button.class).all().stream()
+                    .filter(b -> "Kirjaudu ulos".equals(b.getText())).findFirst().orElseThrow();
+            assertTrue(logout.hasClassName("drawer-logout"));
+            var footer = logout.getParent().orElseThrow();
+            assertTrue(footer.getElement().getClassList().contains("drawer-footer"));
+            assertTrue(footer.getChildren().findFirst().orElseThrow().getElement().getClassList().contains("drawer-user"));
+        }
+    }
+
+    @Test
+    void styles_pinTheFooterToTheBottom_andMatchTheNavigationRows() throws Exception {
+        String css;
+        try (var in = DrawerFooterTest.class.getResourceAsStream("/META-INF/resources/styles.css")) {
+            css = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        int footer = css.indexOf(".drawer-footer {");
+        int logout = css.indexOf(".drawer-footer .drawer-logout {");
+
+        assertTrue(footer >= 0 && logout >= 0, "Alatunnisteen tyylit puuttuvat");
+        String footerRule = css.substring(footer, css.indexOf('}', footer));
+        String logoutRule = css.substring(logout, css.indexOf('}', logout));
+        assertTrue(footerRule.contains("margin-top: auto"), "Alatunniste kiinni paneelin alareunassa");
+        assertTrue(footerRule.contains("border-top"), "Erotinviiva alatunnisteen yläpuolella");
+        assertTrue(logoutRule.contains("width: 100%"), "Kirjaudu ulos on koko rivin levyinen kuin valikon rivit");
+        assertTrue(logoutRule.contains("justify-content: flex-start"), "Kuvake ja teksti vasemmassa laidassa");
+        assertTrue(logoutRule.contains("padding: 6px 8px"), "Sama täyte kuin valikon riveillä");
+        assertTrue(logoutRule.contains("border-radius: 9px"), "Sama kulma kuin valikon riveillä");
+    }
 }
