@@ -44,9 +44,12 @@ public class ProfileView extends VerticalLayout {
     private final MapConfig mapConfig;
     private final GeocodingService geocoder;
     private final CurrentUser currentUser;
+    private final com.narraus.domain.AdminPolicy adminPolicy;
 
     public ProfileView(UserService users, PostService posts, AccountService accounts, PushService push,
-                       MapConfig mapConfig, GeocodingService geocoder, CurrentUser currentUser) {
+                       MapConfig mapConfig, GeocodingService geocoder, CurrentUser currentUser,
+                       com.narraus.domain.AdminPolicy adminPolicy) {
+        this.adminPolicy = adminPolicy;
         this.users = users;
         this.posts = posts;
         this.accounts = accounts;
@@ -70,6 +73,15 @@ public class ProfileView extends VerticalLayout {
                 new Span("Seuraajia: " + users.followerCount(me)),
                 new Span("Seurattavia: " + users.followingCount(me)),
                 new Span("Julkaisuja: " + posts.postCount(me)));
+
+        if (adminPolicy.isAdmin(me)) {
+            // Ylläpito löytyy ylläpitäjän omalta sivulta, ilmoitusasetusten yläpuolelta
+            com.vaadin.flow.component.button.Button admin = new com.vaadin.flow.component.button.Button("Ylläpito",
+                    com.vaadin.flow.component.icon.VaadinIcon.COG.create(),
+                    e -> com.vaadin.flow.component.UI.getCurrent().navigate(AdminView.class));
+            admin.addClassName("profile-admin");
+            add(admin);
+        }
 
         add(new NotificationSettings(push, currentUser));
 

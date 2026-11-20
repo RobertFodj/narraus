@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 
-/** Puhelimen alapalkki: samat valikot kuin sivupaneelissa; Ylläpito vain ylläpitäjälle (seitsemäs). */
+/** Puhelimen alapalkki: samat valikot kuin sivupaneelissa; Ylläpito on ylläpitäjän omalla sivulla. */
 @NarrausTest
 class BottomBarTest {
 
@@ -43,16 +43,15 @@ class BottomBarTest {
     }
 
     @Test
-    void admin_hasTheSeventhTab() {
+    void admin_hasNoExtraTab_adminIsOnTheOwnPage() {
         users.find("robbe").orElseGet(() -> users.register("robbe", "Robbe Ylläpitäjä", "salasana123"));
 
         try (var user = app.newUser("robbe", "USER")) {
             var window = user.newWindow();
             window.navigate(FeedView.class);
 
-            List<String> labels = labels(window);
-            assertEquals(7, labels.size());
-            assertEquals("Ylläpito", labels.get(6));
+            assertEquals(6, labels(window).size());
+            assertFalse(labels(window).contains("Ylläpito"));
         }
     }
 

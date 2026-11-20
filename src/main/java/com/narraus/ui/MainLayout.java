@@ -100,9 +100,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         nav.addItem(new SideNavItem("Kartta", MapView.class, VaadinIcon.MAP_MARKER.create()));
         nav.addItem(new SideNavItem("Kilpailut", EventsView.class, VaadinIcon.TROPHY.create()));
         nav.addItem(new SideNavItem("Oma sivu", ProfileView.class, VaadinIcon.USER.create()));
-        if (adminPolicy.isAdmin(me)) {
-            nav.addItem(new SideNavItem("Ylläpito", AdminView.class, VaadinIcon.COG.create()));
-        }
         addToDrawer(nav);
 
         // Puhelin pystyssä: kelluva alapalkki ("saari") samoilla valikoilla kuin sivupaneelissa
@@ -115,9 +112,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         addBarLink(bar, "Kartta", MapView.class, VaadinIcon.MAP_MARKER, null);
         addBarLink(bar, "Kilpailut", EventsView.class, VaadinIcon.TROPHY, null);
         addBarLink(bar, "Oma sivu", ProfileView.class, VaadinIcon.USER, null);
-        if (adminPolicy.isAdmin(me)) {
-            addBarLink(bar, "Ylläpito", AdminView.class, VaadinIcon.COG, null);
-        }
         getElement().appendChild(bar.getElement());
 
         // Alatunniste kiinni paneelin alareunassa: nimi ja Kirjaudu ulos valikon rivien kaltaisena rivinä

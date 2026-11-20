@@ -60,18 +60,21 @@ class AdminViewTest {
     // ---- pääsy ----
 
     @Test
-    void adminNavItem_isShownOnlyToTheAdmin() {
+    void adminButton_isOnTheOwnPage_forTheAdminOnly() {
         admin();
         AppUser normal = TestData.newUser(users, "Tavallinen");
 
         try (var adminUser = app.newUser("robbe", "USER"); var normalUser = app.newUser(normal.getUsername(), "USER")) {
             var adminWindow = adminUser.newWindow();
             var normalWindow = normalUser.newWindow();
-            adminWindow.navigate(FeedView.class);
-            normalWindow.navigate(FeedView.class);
+            adminWindow.navigate(ProfileView.class);
+            normalWindow.navigate(ProfileView.class);
 
-            assertTrue(hasNavItem(adminWindow, "Ylläpito"));
-            assertFalse(hasNavItem(normalWindow, "Ylläpito"), "Tavalliselle ei näytetä ylläpitoa");
+            assertFalse(hasNavItem(adminWindow, "Ylläpito"), "Ylläpito ei ole enää valikossa");
+            assertTrue(adminWindow.find(com.vaadin.flow.component.button.Button.class).all().stream()
+                    .anyMatch(b -> b.hasClassName("profile-admin")), "Ylläpito on ylläpitäjän omalla sivulla");
+            assertFalse(normalWindow.find(com.vaadin.flow.component.button.Button.class).all().stream()
+                    .anyMatch(b -> b.hasClassName("profile-admin")), "Tavalliselle ei näytetä ylläpitoa");
         }
     }
 
