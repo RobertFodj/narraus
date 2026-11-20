@@ -16,3 +16,6 @@ types.d.ts
 
 # Paikalliset asetukset (sisältää mm. MapTiler-avaimen), ei versionhallintaan
 /config/
+
+# Vaadinin generoima kehitysbundle (2,7 Mt, rakentuu tarvittaessa itse; tuotanto rakentaa oman)
+/src/main/bundles/
