@@ -60,7 +60,10 @@ public class FeedView extends VerticalLayout {
 
         // Kaksi saalista vierekkäin myös puhelimella (ks. .feed-list styles.css:ssä)
         list.addClassName("feed-list");
-        tabs.addSelectedChangeListener(e -> refresh());
+        tabs.addSelectedChangeListener(e -> {
+            loaded = PAGE_SIZE;
+            refresh();
+        });
         // Otsikko, nappi ja välilehdet ovat "saari", joka pysyy paikallaan kun saaliit vierivät sen alla
         VerticalLayout bar = new VerticalLayout(header, tabs);
         bar.addClassName("island");
@@ -93,15 +96,52 @@ public class FeedView extends VerticalLayout {
         if (registration != null) registration.remove();
     }
 
+    /** Kuinka monta julkaisua ladataan kerralla: ensimmäinen erä riittää täyttämään näkyvän alueen. */
+    static final int PAGE_SIZE = 10;
+
+    /** Ladattujen julkaisujen määrä (aina PAGE_SIZE:n monikerta); päivitys säilyttää vieritetyn määrän. */
+    private int loaded = PAGE_SIZE;
+    private Button more;
+
     private void refresh() {
         list.removeAll();
         AppUser me = currentUser.get();
-        List<CatchPost> feed = posts.feed(me, tabs.getSelectedIndex() == 1);
+        boolean followed = tabs.getSelectedIndex() == 1;
+        List<CatchPost> feed = posts.feedPage(me, followed, 0, Math.max(loaded, PAGE_SIZE));
+        loaded = Math.max(loaded, PAGE_SIZE);
         if (feed.isEmpty()) {
             Paragraph empty = new Paragraph("Ei vielä saaliita. Lisää ensimmäinen tai seuraa muita kalastajia!");
             empty.getStyle().set("grid-column", "1 / -1");
             list.add(empty);
         }
         feed.forEach(p -> list.add(new CatchCard(posts, p, me)));
+        addMoreSentinel(feed.size() >= loaded);
+    }
+
+    /**
+     * Näkymätön "Näytä lisää" -nappi listan lopussa. Selain painaa sitä itse, kun se vieritetään lähelle näkyviin
+     * (IntersectionObserver), joten alaspäin olevat julkaisut ladataan vasta kun niitä tarvitaan.
+     */
+    private void addMoreSentinel(boolean hasMore) {
+        if (!hasMore) return;
+        more = new Button("Näytä lisää", e -> loadMore());
+        more.addThemeVariants(ButtonVariant.TERTIARY);
+        more.addClassName("feed-more");
+        more.getStyle().set("grid-column", "1 / -1").set("justify-self", "center");
+        list.add(more);
+        more.getElement().executeJs(
+                "const b = this; const o = new IntersectionObserver(es => { if (es[0].isIntersecting) b.click(); },"
+                        + " { rootMargin: '600px' }); o.observe(b); b.__feedObserver = o;");
+    }
+
+    private void loadMore() {
+        if (more == null) return;
+        list.remove(more);
+        more = null;
+        AppUser me = currentUser.get();
+        List<CatchPost> next = posts.feedPage(me, tabs.getSelectedIndex() == 1, loaded / PAGE_SIZE, PAGE_SIZE);
+        next.forEach(p -> list.add(new CatchCard(posts, p, me)));
+        loaded += PAGE_SIZE;
+        addMoreSentinel(next.size() >= PAGE_SIZE);
     }
 }

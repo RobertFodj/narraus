@@ -231,7 +231,12 @@ public class PostService {
     }
 
     public List<CatchPost> feed(AppUser me, boolean onlyFollowed) {
-        var page = PageRequest.of(0, 50);
+        return feedPage(me, onlyFollowed, 0, 50);
+    }
+
+    /** Syötteen sivu (uusimmasta vanhimpaan); käyttöliittymä lataa lisää vasta kun käyttäjä vierittää sinne. */
+    public List<CatchPost> feedPage(AppUser me, boolean onlyFollowed, int pageIndex, int size) {
+        var page = PageRequest.of(pageIndex, size);
         if (!onlyFollowed) return posts.findAllByOrderByCaughtAtDesc(page);
         List<AppUser> authors = new ArrayList<>(follows.findByFollower(me).stream().map(Follow::getFollowed).toList());
         authors.add(me);
