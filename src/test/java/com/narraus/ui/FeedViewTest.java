@@ -39,7 +39,7 @@ class FeedViewTest {
 
             window.find(H2.class).withText(species).single();
             assertTrue(window.find(Span.class).all().stream()
-                            .anyMatch(s -> s.getText().contains("Paino 3,5 kg") && s.getText().contains("Päijänne")),
+                            .anyMatch(s -> s.getElement().getTextRecursively().contains("Paino 3,5 kg") && s.getElement().getTextRecursively().contains("Päijänne")),
                     "Saaliskortin pitäisi näyttää paino ja paikka");
         }
     }

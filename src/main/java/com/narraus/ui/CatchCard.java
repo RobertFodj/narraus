@@ -3,6 +3,7 @@ package com.narraus.ui;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.CatchPost;
 import com.narraus.domain.PostService;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -27,7 +28,16 @@ class CatchCard extends VerticalLayout {
             .withZone(ZoneId.systemDefault());
 
     CatchCard(PostService posts, CatchPost p, AppUser me) {
+        this(posts, p, me, null);
+    }
+
+    /**
+     * {@code onPlaceClick}: mitä tehdään, kun paikkaa painetaan (Saaliit-sivulla siirrytään kartalle); null =
+     * siirrytään Saaliit-sivun karttaan osoitteella.
+     */
+    CatchCard(PostService posts, CatchPost p, AppUser me, java.util.function.Consumer<CatchPost> onPlaceClick) {
         addClassName("catch-card");
+        getElement().setAttribute("id", "post-" + p.getId()); // kilpailun saaliista hypätään tähän julkaisuun
         getStyle().set("min-width", "0"); // jotta kortti mahtuu ruudukon sarakkeeseen
         setSpacing(false);
 
@@ -57,8 +67,24 @@ class CatchCard extends VerticalLayout {
         if (p.getWeightKg() != null) stats.add("Paino " + fmt(p.getWeightKg()) + " kg");
         if (p.getLengthCm() != null) stats.add("Pituus " + fmt(p.getLengthCm()) + " cm");
         if (p.getGirthCm() != null) stats.add("Ympärys " + fmt(p.getGirthCm()) + " cm");
-        if (p.getLocation() != null) stats.add("📍 " + p.getLocation());
-        if (!stats.isEmpty()) add(new Span(String.join("  ·  ", stats)));
+        Span statsLine = new Span(String.join("  ·  ", stats));
+        if (p.getLocation() != null) {
+            if (!stats.isEmpty()) statsLine.add(new Span("  ·  "));
+            Span place = new Span("📍 " + p.getLocation());
+            if (p.hasCoordinates()) {
+                // Paikkaa painamalla kartta aukeaa ja zoomaa saaliin paikalle
+                place.addClassName("catch-place");
+                place.getElement().setAttribute("role", "link");
+                place.getElement().setAttribute("tabindex", "0");
+                place.addClickListener(e -> {
+                    if (onPlaceClick != null) onPlaceClick.accept(p);
+                    else UI.getCurrent().navigate(FeedView.class,
+                            com.vaadin.flow.router.QueryParameters.of("map", String.valueOf(p.getId())));
+                });
+            }
+            statsLine.add(place);
+        }
+        if (!stats.isEmpty() || p.getLocation() != null) add(statsLine);
         if (p.getDescription() != null) add(new Paragraph(p.getDescription()));
 
         Button like = likeButton(posts, p, me);

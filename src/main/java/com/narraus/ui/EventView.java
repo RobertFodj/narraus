@@ -355,6 +355,12 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
         };
     }
 
+    /** Kilpailun saaliista hypätään alkuperäiseen julkaisuun Saaliit-sivulla. */
+    private static void openOriginal(Long postId) {
+        UI.getCurrent().navigate(FeedView.class,
+                com.vaadin.flow.router.QueryParameters.of("post", String.valueOf(postId)));
+    }
+
     private Div fishRow(EventService.CountedFish f, CompetitionEvent ev) {
         Div row = new Div();
         row.addClassName("event-fish");
@@ -363,15 +369,20 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
         if (file != null) {
             Image thumb = new Image(new StreamResource(file, () -> posts.openThumbnail(file)), f.post().getSpecies());
             thumb.addClassName("event-fish-thumb");
+            thumb.addClassName("event-fish-link");
             thumb.getElement().setAttribute("loading", "lazy");
+            thumb.addClickListener(e -> openOriginal(f.post().getId()));
             row.add(thumb);
         }
 
-        String text = f.post().getSpecies()
+        String text = Species.display(f.post().getSpecies())
                 + (ev.getMetric() == EventMetric.COUNT ? "" : " · " + EventService.format(f.value(), ev.getMetric()))
                 + " · " + EventFormat.SHORT.format(f.post().getCaughtAt());
         Div body = new Div(new Span(text));
         body.addClassName("event-fish-text");
+        body.addClassName("event-fish-link");
+        body.getElement().setAttribute("role", "link");
+        body.addClickListener(e -> openOriginal(f.post().getId())); // alkuperäinen julkaisu Saaliit-sivulla
         if (f.questioned()) {
             Span flag = new Span("⚠ Tarkistuksessa" + (f.review().getNote() == null ? "" : ": " + f.review().getNote()));
             flag.addClassName("event-flag");
@@ -422,6 +433,8 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
                 + (r.getNote() == null ? "" : " · " + r.getNote());
         Div body = new Div(new Span(text));
         body.addClassName("event-fish-text");
+        body.addClassName("event-fish-link");
+        body.addClickListener(e -> openOriginal(r.getPost().getId()));
         Button restore = new Button("Palauta", VaadinIcon.ARROW_BACKWARD.create(), e -> {
             events.clearReview(eventId, r.getPost().getId(), me);
             renderResults();

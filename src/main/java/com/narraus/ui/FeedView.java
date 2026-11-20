@@ -20,6 +20,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.component.UIDetachedException;
@@ -32,7 +34,7 @@ import java.util.List;
 @PageTitle("Saaliit | Narraus")
 @PermitAll
 @MenuItem(title = "Saaliit", icon = VaadinIcon.PICTURE, order = 10)
-public class FeedView extends VerticalLayout {
+public class FeedView extends VerticalLayout implements BeforeEnterObserver {
 
     private final PostService posts;
     private final CurrentUser currentUser;
@@ -122,7 +124,10 @@ public class FeedView extends VerticalLayout {
             list.setVisible(false);
             mapBox.setVisible(true);
             if (mapBox.getComponentCount() == 0) {
-                mapBox.add(new MapView(posts, currentUser, mapConfig, true));
+                MapView mapView = new MapView(posts, currentUser, mapConfig, true);
+                if (mapFocus != null) mapView.focusOn(mapFocus[0], mapFocus[1]);
+                mapFocus = null;
+                mapBox.add(mapView);
             }
             return;
         }
@@ -139,7 +144,8 @@ public class FeedView extends VerticalLayout {
             empty.getStyle().set("grid-column", "1 / -1");
             list.add(empty);
         }
-        feed.forEach(p -> list.add(new CatchCard(posts, p, me)));
+        shownIds.clear();
+        feed.forEach(p -> addCard(p, me));
         addMoreSentinel(feed.size() >= loaded);
     }
 
@@ -165,8 +171,67 @@ public class FeedView extends VerticalLayout {
         more = null;
         AppUser me = currentUser.get();
         List<CatchPost> next = posts.feedPage(me, tabs.getSelectedIndex() == 1, loaded / PAGE_SIZE, PAGE_SIZE);
-        next.forEach(p -> list.add(new CatchCard(posts, p, me)));
+        next.forEach(p -> addCard(p, me));
         loaded += PAGE_SIZE;
         addMoreSentinel(next.size() >= PAGE_SIZE);
+    }
+
+    private final java.util.Set<Long> shownIds = new java.util.HashSet<>();
+    /** Kartan kohdistus (lat, lon), jonka seuraavaksi rakennettava kartta ottaa käyttöön. */
+    private double[] mapFocus;
+
+    private void addCard(CatchPost p, AppUser me) {
+        shownIds.add(p.getId());
+        list.add(new CatchCard(posts, p, me, this::showOnMap));
+    }
+
+    /** Julkaisun paikan painaminen: Kartalla-välilehti avautuu ja zoomaa saaliin paikalle. */
+    void showOnMap(CatchPost post) {
+        if (!post.hasCoordinates()) return;
+        mapFocus = new double[]{post.getLatitude(), post.getLongitude()};
+        if (mapSelected()) {
+            mapBox.removeAll(); // rakennetaan kartta uudelleen kohdistettuna
+            refresh();
+        } else {
+            tabs.setSelectedIndex(2);
+        }
+    }
+
+    /**
+     * Osoitteen parametrit: {@code ?post=<id>} vierittää listan kyseisen julkaisun kohdalle (kilpailun saaliista),
+     * {@code ?map=<id>} avaa kartan ja zoomaa julkaisun paikalle.
+     */
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        var params = event.getLocation().getQueryParameters();
+        params.getSingleParameter("map").flatMap(FeedView::parseId).flatMap(posts::find).ifPresent(this::showOnMap);
+        params.getSingleParameter("post").flatMap(FeedView::parseId).ifPresent(this::showPost);
+    }
+
+    private static java.util.Optional<Long> parseId(String s) {
+        try {
+            return java.util.Optional.of(Long.parseLong(s));
+        } catch (NumberFormatException e) {
+            return java.util.Optional.empty();
+        }
+    }
+
+    /** Näyttää julkaisun Saaliit-listassa: lataa listaa kunnes julkaisu löytyy, vierittää siihen ja korostaa sen. */
+    void showPost(Long postId) {
+        if (tabs.getSelectedIndex() != 0) {
+            loaded = PAGE_SIZE;
+            tabs.setSelectedIndex(0);
+        }
+        int guard = 0;
+        while (!shownIds.contains(postId) && more != null && guard++ < 100) loadMore();
+        if (!shownIds.contains(postId)) return; // julkaisu on poistettu tai ei löydy
+        getElement().executeJs("""
+                setTimeout(() => {
+                  const el = document.getElementById('post-' + $0);
+                  if (!el) return;
+                  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                  el.classList.add('post-focus');
+                  setTimeout(() => el.classList.remove('post-focus'), 2500);
+                }, 300);""", String.valueOf(postId));
     }
 }

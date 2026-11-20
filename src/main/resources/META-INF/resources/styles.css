@@ -637,3 +637,23 @@ body:has(.chat-view.chat-open) vaadin-app-layout .mobile-content {
 .language-menu-labeled.profile-section-button {
   width: 100%;
 }
+
+/* Julkaisun paikka (painamalla kartalle) ja kilpailun saaliin linkki alkuperäiseen julkaisuun */
+.catch-place {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.event-fish-link {
+  cursor: pointer;
+}
+
+@keyframes post-focus-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  30% { box-shadow: 0 0 0 4px var(--aura-accent-color, #2a5bd7); }
+}
+
+.catch-card.post-focus {
+  animation: post-focus-pulse 2.5s ease-out;
+}

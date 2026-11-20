@@ -230,6 +230,11 @@ public class PostService {
         }
     }
 
+    /** Julkaisu tunnisteen mukaan (tyhjä, jos sitä ei ole). */
+    public java.util.Optional<CatchPost> find(Long id) {
+        return id == null ? java.util.Optional.empty() : posts.findById(id);
+    }
+
     public List<CatchPost> feed(AppUser me, boolean onlyFollowed) {
         return feedPage(me, onlyFollowed, 0, 50);
     }

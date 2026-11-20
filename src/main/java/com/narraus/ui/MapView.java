@@ -55,6 +55,14 @@ public class MapView extends VerticalLayout {
         else add(new H2("Kartta"), new Span(info), map);
     }
 
+    /** Kohdistaa kartan annettuun pisteeseen ja zoomaa lähelle (saaliin paikka). */
+    void focusOn(double latitude, double longitude) {
+        map.setCenter(longitude, latitude);
+        map.setZoomLevel(FOCUS_ZOOM);
+    }
+
+    static final int FOCUS_ZOOM = 13;
+
     /** Avaa pisteen julkaisun tiedot. */
     void openDetails(CatchPost post) {
         Dialog d = new Dialog();
