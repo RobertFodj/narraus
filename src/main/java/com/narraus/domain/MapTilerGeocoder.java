@@ -49,8 +49,37 @@ class MapTilerGeocoder implements GeocodingService {
             JsonNode f = features.get(0);
             JsonNode center = f.path("center");
             if (!center.isArray() || center.size() < 2) return Optional.empty();
-            String name = f.path("place_name").asString(f.path("text").asString(query));
+            String name = shorten(f.path("place_name").asString(f.path("text").asString(query)));
             return Optional.of(new Place(name, center.get(1).asDouble(), center.get(0).asDouble()));
+        } catch (IOException e) {
+            LOG.log(Level.WARNING, "Paikkahaku epäonnistui", e);
+            return Optional.empty();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Optional.empty();
+        }
+    }
+
+    /** Poistaa nimen perästä maan (", Suomi"): paikan nimi riittää, kun sovellus on suomalainen. */
+    static String shorten(String placeName) {
+        return placeName.endsWith(", Suomi") ? placeName.substring(0, placeName.length() - ", Suomi".length()) : placeName;
+    }
+
+    @Override
+    public Optional<String> describe(double latitude, double longitude) {
+        if (key == null || key.isBlank()) return Optional.empty();
+        try {
+            URI uri = URI.create(String.format(java.util.Locale.ROOT,
+                    "https://api.maptiler.com/geocoding/%.6f,%.6f.json?language=fi&key=%s", longitude, latitude,
+                    URLEncoder.encode(key, StandardCharsets.UTF_8)));
+            HttpResponse<String> res = http.send(
+                    HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(4)).GET().build(),
+                    HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                LOG.log(Level.WARNING, "Paikkahaku epäonnistui, HTTP {0}", res.statusCode());
+                return Optional.empty();
+            }
+            return Optional.ofNullable(PlaceNames.choose(mapper.readTree(res.body()).path("features"), latitude, longitude));
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Paikkahaku epäonnistui", e);
             return Optional.empty();

@@ -52,7 +52,7 @@ class CatchCard extends VerticalLayout {
             add(img);
         }
 
-        add(new H2(p.getSpecies()));
+        add(new H2(Species.display(p.getSpecies())));
         List<String> stats = new ArrayList<>();
         if (p.getWeightKg() != null) stats.add("Paino " + fmt(p.getWeightKg()) + " kg");
         if (p.getLengthCm() != null) stats.add("Pituus " + fmt(p.getLengthCm()) + " cm");

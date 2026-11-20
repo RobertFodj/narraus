@@ -19,7 +19,7 @@ final class EventFormat {
 
     /** "Suurin paino" tai "Suurin paino · Hauki". */
     static String goal(CompetitionEvent e) {
-        return e.getSpecies() == null ? e.getMetric().label() : e.getMetric().label() + " · " + e.getSpecies();
+        return e.getSpecies() == null ? e.getMetric().label() : e.getMetric().label() + " · " + Species.display(e.getSpecies());
     }
 
     static String statusClass(EventStatus s) {

@@ -49,13 +49,7 @@ public class LanguageMenu extends Button {
     }
 
     static Language currentLanguage() {
-        UI ui = UI.getCurrent();
-        if (ui != null && ui.getLocale() != null) {
-            String lang = ui.getLocale().getLanguage();
-            if (lang.equals("nb") || lang.equals("nn")) lang = "no";
-            return Language.ofCode(lang).orElse(Language.FI);
-        }
-        return Language.FI;
+        return Language.current();
     }
 
     private void select(Language language) {

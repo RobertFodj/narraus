@@ -50,9 +50,7 @@ class CatchDialog extends Dialog {
 
     /** Uusi julkaisu. */
     /** Valikon lajit järjestyksessä: yleisimmät, särkikalat, lohikalat. */
-    static final List<String> SPECIES = List.of("Ahven", "Hauki", "Kuha", "Made",
-            "Särki", "Lahna", "Salakka", "Pasuri", "Sorva", "Säyne",
-            "Kirjolohi", "Siika", "Muikku", "Taimen", "Lohi", "Harjus");
+    static final List<String> SPECIES = Species.all();
 
     CatchDialog(PostService posts, CurrentUser currentUser, MapConfig mapConfig, GeocodingService geocoder,
                 Runnable onSaved) {
@@ -70,8 +68,11 @@ class CatchDialog extends Dialog {
         // Muunkin lajin voi kirjoittaa, jos sitä ei löydy listalta.
         ComboBox<String> species = new ComboBox<>("Kalalaji");
         species.setItems(SPECIES);
+        // Lajin nimi näytetään käyttäjän kielellä; tallennetaan suomenkielinen nimi (kielestä riippumaton)
+        species.setItemLabelGenerator(Species::display);
         species.setAllowCustomValue(true);
-        species.addCustomValueSetListener(ev -> species.setValue(ev.getDetail().trim()));
+        species.addCustomValueSetListener(ev -> species.setValue(
+                Species.canonical(ev.getDetail()).orElse(ev.getDetail().trim())));
         species.setRequired(true);
         species.setPlaceholder("Valitse tai hae lajia");
         NumberField weight = number("Paino (kg)");
@@ -81,6 +82,7 @@ class CatchDialog extends Dialog {
         description.setMaxLength(2000);
 
         TextField location = new TextField("Paikka");
+        this.locationField = location;
         location.setPlaceholder("esim. Päijänne, Lahti");
         Button find = new Button("Hae kartalta", VaadinIcon.SEARCH.create(), e -> searchPlace(location.getValue()));
         find.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
@@ -90,7 +92,14 @@ class CatchDialog extends Dialog {
         map = mapConfig.newMap();
         map.setWidthFull();
         map.setHeight("16em");
-        map.addMapClickListener(e -> setPin(e.getCoordinate().y, e.getCoordinate().x));
+        map.addMapClickListener(e -> {
+            setPin(e.getCoordinate().y, e.getCoordinate().x);
+            suggestLocation(e.getCoordinate().y, e.getCoordinate().x);
+        });
+        // Kirjoitusvirheet korjataan: kun paikan nimi on kirjoitettu, se haetaan ja korvataan oikealla nimellä
+        location.addValueChangeListener(e -> {
+            if (e.isFromClient()) autocorrectLocation(e.getValue());
+        });
         clearPin.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
         clearPin.setEnabled(false);
         pinInfo.getStyle().set("opacity", "0.8").set("font-size", "0.9em");
@@ -192,6 +201,36 @@ class CatchDialog extends Dialog {
         getFooter().add(new Button("Peruuta", e -> close()), save);
     }
 
+    private TextField locationField;
+    /** Viimeksi ehdotettu/korjattu paikannimi: sen saa korvata uudella ehdotuksella, käsin kirjoitettua ei. */
+    private String lastSuggestion;
+
+    /**
+     * Kartalta valitulle pisteelle ehdotetaan nimeä: lähin paikka (enintään 500 m), muuten kaupunki, maakunta, maa
+     * tai koordinaatit. Käsin kirjoitettua nimeä ei ylikirjoiteta.
+     */
+    void suggestLocation(double lat, double lon) {
+        String name = geocoder.suggestName(lat, lon);
+        if (locationField.isEmpty() || locationField.getValue().equals(lastSuggestion)) {
+            locationField.setValue(name);
+        }
+        lastSuggestion = name;
+    }
+
+    /** Korjaa kirjoitetun paikannimen (haku löytää lähimmän vastaavan nimen); pistettä ei siirretä, jos se on jo valittu. */
+    void autocorrectLocation(String typed) {
+        if (typed == null || typed.isBlank() || typed.equals(lastSuggestion)) return;
+        geocoder.search(typed).ifPresent(p -> {
+            lastSuggestion = p.name();
+            locationField.setValue(p.name());
+            if (latitude == null) {
+                setPin(p.latitude(), p.longitude());
+                pinInfo.setText("📍 " + p.name());
+                map.flyTo(p.longitude(), p.latitude(), PLACE_ZOOM);
+            }
+        });
+    }
+
     /** Hakee paikan nimellä, asettaa pisteen sen kohdalle ja kohdistaa kartan siihen. */
     void searchPlace(String query) {
         if (query == null || query.isBlank()) {
@@ -206,6 +245,8 @@ class CatchDialog extends Dialog {
         }
         var p = place.get();
         setPin(p.latitude(), p.longitude());
+        lastSuggestion = p.name();
+        locationField.setValue(p.name());
         pinInfo.setText("📍 " + p.name());
         map.flyTo(p.longitude(), p.latitude(), PLACE_ZOOM);
     }

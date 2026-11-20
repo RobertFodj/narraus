@@ -32,6 +32,15 @@ public enum Language {
         return Optional.empty();
     }
 
+    /** Nykyisen käyttöliittymän kieli (UI:n locale, jonka LanguageInit asettaa evästeestä); oletus suomi. */
+    public static Language current() {
+        com.vaadin.flow.component.UI ui = com.vaadin.flow.component.UI.getCurrent();
+        if (ui == null || ui.getLocale() == null) return FI;
+        String lang = ui.getLocale().getLanguage();
+        if (lang.equals("nb") || lang.equals("nn")) lang = "no";
+        return ofCode(lang).orElse(FI);
+    }
+
     /** Kieli evästeen arvosta; tuntematon tai puuttuva arvo on suomi. */
     public static Language fromCookie(String value) {
         return ofCode(value).orElse(FI);

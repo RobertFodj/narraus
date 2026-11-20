@@ -314,4 +314,74 @@ class CatchDialogTest {
             assertTrue(species.isAllowCustomValue(), "Muun lajin voi kirjoittaa");
         }
     }
+
+    // ---- paikan nimiehdotus ja automaattinen korjaus ----
+
+    @Test
+    void clickOnMap_suggestsAPlaceName_butNeverOverwritesTypedText() {
+        AppUser me = TestData.newUser(users, "Minä");
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            CatchDialog dialog = openDialog(window);
+
+            dialog.suggestLocation(62.24, 25.75); // sama polku kuin kartan klikkaus; testipalvelulla ei ole nimiä
+            assertEquals("62.2400, 25.7500", window.findTextField().withLabel("Paikka").component().getValue(),
+                    "Ilman paikannimeä ehdotetaan koordinaatteja");
+
+            dialog.suggestLocation(62.30, 25.80); // edellinen ehdotus saa vaihtua uuteen
+            assertEquals("62.3000, 25.8000", window.findTextField().withLabel("Paikka").component().getValue());
+
+            window.findTextField().withLabel("Paikka").setValue("Oma mökki");
+            dialog.suggestLocation(62.40, 25.90);
+            assertEquals("Oma mökki", window.findTextField().withLabel("Paikka").component().getValue(),
+                    "Käsin kirjoitettua nimeä ei korvata");
+        }
+    }
+
+    @Test
+    void typedPlaceName_isAutocorrectedToTheFoundName_andPinned() {
+        AppUser me = TestData.newUser(users, "Minä");
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            CatchDialog dialog = openDialog(window);
+
+            window.findTextField().withLabel("Paikka").setValue("lahti"); // kirjoitettu pienellä
+
+            assertEquals("Lahti", window.findTextField().withLabel("Paikka").component().getValue(),
+                    "Nimi korjataan haun löytämäksi");
+            assertEquals(60.98, dialog.pinLatitude(), "Piste asetetaan, kun sitä ei ollut");
+        }
+    }
+
+    @Test
+    void autocorrect_doesNotMoveAnExistingPin() {
+        AppUser me = TestData.newUser(users, "Minä");
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            CatchDialog dialog = openDialog(window);
+            dialog.setPin(63.0, 27.0);
+
+            window.findTextField().withLabel("Paikka").setValue("päijänne");
+
+            assertEquals("Päijänne", window.findTextField().withLabel("Paikka").component().getValue());
+            assertEquals(63.0, dialog.pinLatitude(), "Käsin valittu piste pysyy");
+        }
+    }
+
+    @Test
+    void unknownPlaceName_isLeftAsTyped() {
+        AppUser me = TestData.newUser(users, "Minä");
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            openDialog(window);
+
+            window.findTextField().withLabel("Paikka").setValue("Salainen paikka");
+
+            assertEquals("Salainen paikka", window.findTextField().withLabel("Paikka").component().getValue());
+        }
+    }
 }
