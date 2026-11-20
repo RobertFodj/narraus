@@ -239,4 +239,15 @@ class CommentsAndLayoutTest {
         assertFalse(users.updateAccount(me.getId(), "Pelkkä nimi", me.getUsername(), "", ""),
                 "Pelkkä nimenvaihto ei vaadi salasanaa eikä vaihda tunnusta");
     }
+
+    @Test
+    void chatListHeader_staysInsideItsIsland() throws Exception {
+        String css;
+        try (var in = CommentsAndLayoutTest.class.getResourceAsStream("/META-INF/resources/styles.css")) {
+            css = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        int rule = css.indexOf(".chat-view .chat-list > .island {");
+        assertTrue(rule >= 0 && css.substring(rule, css.indexOf('}', rule)).contains("flex-wrap: wrap"),
+                "Keskustelulistan otsikkosaaren nappi ei leikkaudu");
+    }
 }

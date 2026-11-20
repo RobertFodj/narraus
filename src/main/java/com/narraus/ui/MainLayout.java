@@ -4,7 +4,9 @@ import com.narraus.domain.AdminPolicy;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.ChatBroadcaster;
 import com.narraus.domain.FeedBroadcaster;
+import com.narraus.domain.SystemMessage;
 import com.narraus.domain.SystemMessageBroadcaster;
+import com.narraus.domain.SystemMessageService;
 import com.narraus.domain.UnreadService;
 import com.narraus.domain.UserService;
 import com.vaadin.flow.component.AttachEvent;
@@ -16,7 +18,10 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.router.RouterLink;
@@ -44,6 +49,8 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private final ChatBroadcaster chatBroadcaster;
     private final FeedBroadcaster feedBroadcaster;
     private final SystemMessageBroadcaster systemBroadcaster;
+    private final SystemMessageService systemMessages;
+    private Notification narrausPopup;
     private final AppUser me;
 
     /** Asennettu sovellus (PWA) avautuu omassa ikkunassaan: display-mode standalone (iOS: navigator.standalone). */
@@ -61,8 +68,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     public MainLayout(CurrentUser currentUser, UnreadService unread, ChatBroadcaster chatBroadcaster,
                       FeedBroadcaster feedBroadcaster, UserService users, AdminPolicy adminPolicy,
-                      SystemMessageBroadcaster systemBroadcaster) {
+                      SystemMessageBroadcaster systemBroadcaster, SystemMessageService systemMessages) {
         this.systemBroadcaster = systemBroadcaster;
+        this.systemMessages = systemMessages;
         this.users = users;
         this.unread = unread;
         this.chatBroadcaster = chatBroadcaster;
@@ -191,10 +199,20 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         registrations.add(chatBroadcaster.register(id -> access(ui)));
         registrations.add(feedBroadcaster.register(id -> access(ui)));
         registrations.add(systemBroadcaster.register(userId -> {
-            if (me.getId().equals(userId)) access(ui); // Narraus-viesti tuli minulle
+            if (me.getId().equals(userId)) { // Narraus-viesti tuli minulle: saarena näytölle
+                try {
+                    ui.access(() -> {
+                        refreshBadges();
+                        showNarrausPopup();
+                    });
+                } catch (UIDetachedException ignored) {
+                    // selain on jo suljettu
+                }
+            }
         }));
         registrations.add(ComponentUtil.addListener(ui, UnreadChanged.class, e -> refreshBadges()));
         refreshBadges();
+        showNarrausPopup(); // lukematon Narraus-viesti näytetään heti kirjautuessa
         // Kirjataan, käytetäänkö sovellusta asennettuna sovelluksena (PWA) vai selaimessa (ylläpitäjä näkee tämän)
         ui.getPage().executeJs(CLIENT_JS).then(Boolean.class,
                 installed -> users.recordClient(me.getId(), Boolean.TRUE.equals(installed)));
@@ -205,6 +223,50 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         registrations.forEach(Registration::remove);
         registrations.clear();
         super.onDetach(detachEvent);
+    }
+
+    /**
+     * Narraus-viesti ponnahtaa näytölle saarena (ylhäällä keskellä) ja pysyy, kunnes käyttäjä painaa
+     * "Ymmärrän". Samalla viesti on Viestit-osastolla ilmoituksena (lukematon-merkki).
+     */
+    private void showNarrausPopup() {
+        List<SystemMessage> unreadMessages = systemMessages.messagesFor(me).stream().filter(m -> !m.isRead()).toList();
+        if (narrausPopup != null) {
+            narrausPopup.close();
+            narrausPopup = null;
+        }
+        if (unreadMessages.isEmpty()) return;
+        SystemMessage latest = unreadMessages.get(unreadMessages.size() - 1);
+
+        Image logo = new Image("/icons/icon-192x192.png", "Narraus");
+        logo.addClassName("narraus-popup-logo");
+        Span sender = new Span("Narraus");
+        sender.addClassName("narraus-popup-sender");
+        Span count = new Span(unreadMessages.size() > 1 ? "+" + (unreadMessages.size() - 1) + " muuta" : "");
+        count.addClassName("narraus-popup-count");
+        count.setVisible(unreadMessages.size() > 1);
+        Div head = new Div(logo, sender, count);
+        head.addClassName("narraus-popup-head");
+        Div text = new Div(latest.getText());
+        text.addClassName("narraus-popup-text");
+        Button ok = new Button("Ymmärrän");
+        ok.addThemeVariants(ButtonVariant.PRIMARY);
+        ok.addClassName("narraus-popup-ok");
+        Div content = new Div(head, text, ok);
+        content.addClassName("narraus-popup");
+
+        Notification popup = new Notification(content);
+        popup.setPosition(Notification.Position.TOP_CENTER);
+        popup.setDuration(0);
+        ok.addClickListener(e -> {
+            popup.close();
+            narrausPopup = null;
+            if (systemMessages.markAllRead(me)) {
+                getUI().ifPresent(UnreadChanged::fire);
+            }
+        });
+        narrausPopup = popup;
+        popup.open();
     }
 
     private void access(UI ui) {

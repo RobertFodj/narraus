@@ -156,7 +156,7 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
         listHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         VerticalLayout left = new VerticalLayout(listHeader, convList);
         left.addClassName("chat-list");
-        left.setWidth("16em");
+        left.setWidth("19em");
         left.setPadding(false);
         left.setFlexShrink(0);
 
