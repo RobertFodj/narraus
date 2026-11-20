@@ -8,7 +8,7 @@
 
     <properties>
         <java.version>25</java.version>
-        <vaadin.version>25.3.5</vaadin.version>
+        <vaadin.version>25.4.0-beta2</vaadin.version>
     </properties>
 
     <parent>
