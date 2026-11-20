@@ -1,5 +1,7 @@
 package com.narraus.ui;
 
+import com.narraus.domain.AdminPolicy;
+import com.narraus.domain.AdminService;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.CatchPost;
 import com.narraus.domain.ChatService;
@@ -40,8 +42,13 @@ public class UserProfileView extends VerticalLayout implements HasUrlParameter<L
     private final PostService posts;
     private final ChatService chats;
     private final CurrentUser currentUser;
+    private final AdminPolicy adminPolicy;
+    private final AdminService adminService;
 
-    public UserProfileView(UserService users, PostService posts, ChatService chats, CurrentUser currentUser) {
+    public UserProfileView(UserService users, PostService posts, ChatService chats, CurrentUser currentUser,
+                           AdminPolicy adminPolicy, AdminService adminService) {
+        this.adminPolicy = adminPolicy;
+        this.adminService = adminService;
         this.users = users;
         this.posts = posts;
         this.chats = chats;
@@ -97,6 +104,7 @@ public class UserProfileView extends VerticalLayout implements HasUrlParameter<L
         back.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
         back.addClassName("profile-back");
         add(back, header, counts);
+        if (adminPolicy.isAdmin(me)) add(adminInfo(me, user));
 
         add(new H3("Julkaisut"));
         List<CatchPost> theirs = posts.byAuthor(user);
@@ -104,5 +112,21 @@ public class UserProfileView extends VerticalLayout implements HasUrlParameter<L
             add(new Paragraph("Ei vielä julkaisuja."));
         }
         theirs.forEach(p -> add(new CatchCard(posts, p, me)));
+    }
+
+    /** Ylläpitäjälle näkyvät lisätiedot: tunnus, kilpailut ja laitetyyppi. Muille tätä ei näytetä. */
+    private VerticalLayout adminInfo(AppUser admin, AppUser user) {
+        var overview = adminService.overviewOf(admin, user.getId());
+        VerticalLayout box = new VerticalLayout();
+        box.addClassName("admin-info");
+        box.setPadding(false);
+        box.setSpacing(false);
+        box.add(new H3("Ylläpitäjän tiedot"));
+        box.add(new Span("Tunnus: " + overview.username()));
+        box.add(new Span("Kilpailut: " + (overview.events().isEmpty() ? "ei yhtään"
+                : overview.events().stream().map(e -> e.getName()).collect(java.util.stream.Collectors.joining(", ")))));
+        box.add(new Span("Laite: " + overview.clientLabel()));
+        box.add(new Span("Ilmoituslaitteita: " + overview.pushDevices()));
+        return box;
     }
 }

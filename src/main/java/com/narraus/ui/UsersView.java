@@ -1,5 +1,6 @@
 package com.narraus.ui;
 
+import com.narraus.domain.AdminPolicy;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.UserService;
 import com.vaadin.flow.component.UI;
@@ -26,9 +27,11 @@ public class UsersView extends VerticalLayout {
 
     private final UserService users;
     private final CurrentUser currentUser;
+    private final AdminPolicy adminPolicy;
     private final VerticalLayout results = new VerticalLayout();
 
-    public UsersView(UserService users, CurrentUser currentUser) {
+    public UsersView(UserService users, CurrentUser currentUser, AdminPolicy adminPolicy) {
+        this.adminPolicy = adminPolicy;
         this.users = users;
         this.currentUser = currentUser;
         setMaxWidth("36em");
@@ -65,6 +68,13 @@ public class UsersView extends VerticalLayout {
             followers.getStyle().set("opacity", "0.7");
 
             HorizontalLayout row = new HorizontalLayout(name, followers);
+            if (adminPolicy.isAdmin(me)) {
+                // Vain ylläpitäjä näkee kirjautumistunnukset
+                Span username = new Span("@" + u.getUsername());
+                username.addClassName("admin-info");
+                username.getStyle().set("opacity", "0.7");
+                row.addComponentAtIndex(1, username);
+            }
             row.setWidthFull();
             row.setAlignItems(FlexComponent.Alignment.CENTER);
 

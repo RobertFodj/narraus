@@ -1,9 +1,11 @@
 package com.narraus.ui;
 
+import com.narraus.domain.AdminPolicy;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.ChatBroadcaster;
 import com.narraus.domain.FeedBroadcaster;
 import com.narraus.domain.UnreadService;
+import com.narraus.domain.UserService;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.DetachEvent;
@@ -30,16 +32,23 @@ import java.util.List;
 public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     private final UnreadService unread;
+    private final UserService users;
     private final ChatBroadcaster chatBroadcaster;
     private final FeedBroadcaster feedBroadcaster;
     private final AppUser me;
+
+    /** Asennettu sovellus (PWA) avautuu omassa ikkunassaan: display-mode standalone (iOS: navigator.standalone). */
+    private static final String CLIENT_JS =
+            "return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)"
+                    + " || window.navigator.standalone === true;";
 
     private final Span feedBadge = badge();
     private final Span chatBadge = badge();
     private final List<Registration> registrations = new ArrayList<>();
 
     public MainLayout(CurrentUser currentUser, UnreadService unread, ChatBroadcaster chatBroadcaster,
-                      FeedBroadcaster feedBroadcaster) {
+                      FeedBroadcaster feedBroadcaster, UserService users, AdminPolicy adminPolicy) {
+        this.users = users;
         this.unread = unread;
         this.chatBroadcaster = chatBroadcaster;
         this.feedBroadcaster = feedBroadcaster;
@@ -60,6 +69,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         nav.addItem(new SideNavItem("Kartta", MapView.class, VaadinIcon.MAP_MARKER.create()));
         nav.addItem(new SideNavItem("Kilpailut", EventsView.class, VaadinIcon.TROPHY.create()));
         nav.addItem(new SideNavItem("Oma sivu", ProfileView.class, VaadinIcon.USER.create()));
+        if (adminPolicy.isAdmin(me)) {
+            nav.addItem(new SideNavItem("Ylläpito", AdminView.class, VaadinIcon.COG.create()));
+        }
         addToDrawer(nav);
 
         Button logout = new Button("Kirjaudu ulos", VaadinIcon.SIGN_OUT.create(), e -> currentUser.logout());
@@ -112,6 +124,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         registrations.add(feedBroadcaster.register(id -> access(ui)));
         registrations.add(ComponentUtil.addListener(ui, UnreadChanged.class, e -> refreshBadges()));
         refreshBadges();
+        // Kirjataan, käytetäänkö sovellusta asennettuna sovelluksena (PWA) vai selaimessa (ylläpitäjä näkee tämän)
+        ui.getPage().executeJs(CLIENT_JS).then(Boolean.class,
+                installed -> users.recordClient(me.getId(), Boolean.TRUE.equals(installed)));
     }
 
     @Override

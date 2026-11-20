@@ -1,5 +1,6 @@
 package com.narraus.domain;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.PageRequest;
@@ -141,6 +142,23 @@ public class UserService implements UserDetailsService {
     public int countOthers(String query, AppUser me) {
         String q = query == null ? "" : query.trim();
         return (int) users.countByDisplayNameContainingIgnoreCaseAndIdNot(q, me.getId());
+    }
+
+    /** Kuinka usein sama laitetyyppi kirjataan uudelleen (vähentää kirjoituksia). */
+    private static final java.time.Duration USAGE_RESOLUTION = java.time.Duration.ofMinutes(10);
+
+    /**
+     * Kirjaa, että käyttäjä käyttää sovellusta asennettuna sovelluksena (installedApp) tai selaimessa.
+     * Päivittää enintään kerran kymmenessä minuutissa laitetyyppiä kohti.
+     */
+    @Transactional
+    public void recordClient(Long userId, boolean installedApp) {
+        if (userId == null) return;
+        users.findById(userId).ifPresent(u -> {
+            Instant now = Instant.now();
+            Instant last = installedApp ? u.getAppLastUsedAt() : u.getWebLastUsedAt();
+            if (last == null || last.isBefore(now.minus(USAGE_RESOLUTION))) u.recordUsage(installedApp, now);
+        });
     }
 
     // --- seuraaminen ---

@@ -23,6 +23,7 @@ public class EventParticipant {
         this.user = user;
     }
 
+    public CompetitionEvent getEvent() { return event; }
     public AppUser getUser() { return user; }
     public Instant getJoinedAt() { return joinedAt; }
 }

@@ -18,6 +18,9 @@ public class AppUser {
     /** Milloin saalissyöte on viimeksi katsottu; sen jälkeen tulleet muiden julkaisut ovat "uusia". */
     @Column(nullable = false)
     private Instant feedSeenAt = Instant.now();
+    /** Milloin sovellusta on viimeksi käytetty asennettuna sovelluksena (PWA) ja milloin selaimessa. */
+    private Instant appLastUsedAt;
+    private Instant webLastUsedAt;
 
     protected AppUser() {}
 
@@ -35,6 +38,12 @@ public class AppUser {
     public void setDisplayName(String displayName) { this.displayName = displayName; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public Instant getFeedSeenAt() { return feedSeenAt; }
+    public Instant getAppLastUsedAt() { return appLastUsedAt; }
+    public Instant getWebLastUsedAt() { return webLastUsedAt; }
+
+    public void recordUsage(boolean installedApp, Instant when) {
+        if (installedApp) appLastUsedAt = when; else webLastUsedAt = when;
+    }
     public void setFeedSeenAt(Instant t) { this.feedSeenAt = t; }
 
     @Override public boolean equals(Object o) {
