@@ -312,5 +312,6 @@
  "Kuvaus ({0})": "Description ({0})",
  "Voittaa se, jolla on painavin kala.": "The one with the heaviest fish wins.",
  "Voittaa se, jolla on pisin kala.": "The one with the longest fish wins.",
- "Voittaa se, jolla on suurin ympärysmitta.": "The one with the largest girth wins."
+ "Voittaa se, jolla on suurin ympärysmitta.": "The one with the largest girth wins.",
+ "Ilmoitukset eivät toimi tässä selaimessa. iPhonessa lisää sovellus ensin aloitusnäyttöön (Jaa → Lisää Koti-valikkoon).": "Notifications do not work in this browser. On iPhone, first add the app to the Home Screen (Share → Add to Home Screen)."
 }

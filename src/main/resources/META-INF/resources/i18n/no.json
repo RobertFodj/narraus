@@ -312,5 +312,6 @@
  "Kuvaus ({0})": "Beskrivelse ({0})",
  "Voittaa se, jolla on painavin kala.": "Den som har den tyngste fisken, vinner.",
  "Voittaa se, jolla on pisin kala.": "Den som har den lengste fisken, vinner.",
- "Voittaa se, jolla on suurin ympärysmitta.": "Den som har den største omkretsen, vinner."
+ "Voittaa se, jolla on suurin ympärysmitta.": "Den som har den største omkretsen, vinner.",
+ "Ilmoitukset eivät toimi tässä selaimessa. iPhonessa lisää sovellus ensin aloitusnäyttöön (Jaa → Lisää Koti-valikkoon).": "Varsler fungerer ikke i denne nettleseren. På iPhone: legg først appen til på Hjem-skjermen (Del → Legg til på Hjem-skjerm)."
 }

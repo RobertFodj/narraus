@@ -24,7 +24,9 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, PersistentLoginService rememberMe) throws Exception {
         // Sovelluksen kuvakkeet ja kielitiedostot ovat julkisia (kirjautumissivu tarvitsee ne ennen kirjautumista)
-        http.authorizeHttpRequests(auth -> auth.requestMatchers("/icons/**", "/i18n/**").permitAll());
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/icons/**", "/i18n/**", ClientErrorController.PATH).permitAll());
+        // Selain ilmoittaa käynnistysvirheestä ennen kuin sovellus on edes auki (ei istuntoa eikä CSRF-tunnusta)
+        http.csrf(csrf -> csrf.ignoringRequestMatchers(ClientErrorController.PATH));
         // Pysy kirjautuneena: aina päällä, kantaan tallennettu ja kumottavissa (ks. PersistentLoginService)
         http.rememberMe(rm -> rm.rememberMeServices(rememberMe).key(rememberMeKey));
         http.with(VaadinSecurityConfigurer.vaadin(), c -> c.loginView(LoginView.class));

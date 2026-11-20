@@ -53,6 +53,24 @@ class NotificationSettings extends VerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         if (!push.isEnabled()) return;
         UI ui = attachEvent.getUI();
+        // Kaikki selaimet (esim. iPhonen Safari ilman aloitusnäyttöön lisättyä sovellusta) eivät tue ilmoituksia:
+        // silloin push-kutsut kaatuisivat selaimessa virheeseen "Can't find variable: Notification"
+        ui.getPage().executeJs("return typeof Notification !== 'undefined' && 'serviceWorker' in navigator"
+                + " && 'PushManager' in window;").then(Boolean.class, supported -> {
+            if (Boolean.TRUE.equals(supported)) {
+                checkSubscription(ui);
+            } else {
+                status.setText(UNSUPPORTED);
+                subscribe.setVisible(false);
+                unsubscribe.setVisible(false);
+            }
+        });
+    }
+
+    static final String UNSUPPORTED = "Ilmoitukset eivät toimi tässä selaimessa. iPhonessa lisää sovellus ensin "
+            + "aloitusnäyttöön (Jaa → Lisää Koti-valikkoon).";
+
+    private void checkSubscription(UI ui) {
         push.webPush().subscriptionExists(ui, registered -> {
             show(registered);
             // Laite on tilannut ilmoitukset, mutta palvelin ei tiedä sitä (tai tilaus oli toisen käyttäjän)

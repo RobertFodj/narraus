@@ -33,16 +33,18 @@ public class Application implements AppShellConfigurator {
         // Puhelimen näppäimistö pienentää sivun käytettävää aluetta (eikä peitä sisältöä sen päältä)
         settings.setViewport("width=device-width, initial-scale=1, interactive-widget=resizes-content");
         // Kielituki (käännökset selaimessa); ladataan heti sivun alussa, jotta sivu ei välähdä suomeksi
-        settings.addInlineWithContents(Inline.Position.PREPEND, i18nScript(), Inline.Wrapping.JAVASCRIPT);
+        settings.addInlineWithContents(Inline.Position.PREPEND, script("narraus-i18n.js"), Inline.Wrapping.JAVASCRIPT);
+        // Käynnistysvahti: jos sovellus ei piirry (esim. liian vanha selain), näytetään ohje tyhjän sivun sijaan
+        settings.addInlineWithContents(Inline.Position.PREPEND, script("narraus-boot-check.js"), Inline.Wrapping.JAVASCRIPT);
         settings.addFavIcon("icon", "icons/favicon.svg", "any");
         settings.addFavIcon("icon", "favicon.ico", "16x16 32x32 48x48");
     }
 
-    private static String i18nScript() {
-        try (var in = Application.class.getResourceAsStream("/META-INF/resources/narraus-i18n.js")) {
+    private static String script(String name) {
+        try (var in = Application.class.getResourceAsStream("/META-INF/resources/" + name)) {
             return new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         } catch (java.io.IOException | NullPointerException e) {
-            throw new IllegalStateException("narraus-i18n.js puuttuu", e);
+            throw new IllegalStateException(name + " puuttuu", e);
         }
     }
 
