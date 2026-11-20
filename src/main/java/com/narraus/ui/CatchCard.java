@@ -61,7 +61,9 @@ class CatchCard extends VerticalLayout {
         if (!stats.isEmpty()) add(new Span(String.join("  ·  ", stats)));
         if (p.getDescription() != null) add(new Paragraph(p.getDescription()));
 
-        add(likeButton(posts, p, me));
+        Button like = likeButton(posts, p, me);
+        like.addClassName("catch-like");
+        add(like);
     }
 
     /** Kuvan klikkaus avaa kuvan isona; uusi klikkaus tai ulkopuolelle painaminen sulkee sen. */

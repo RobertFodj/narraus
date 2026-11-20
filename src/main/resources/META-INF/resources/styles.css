@@ -434,7 +434,7 @@ a.event-card:hover {
   display: grid;
   gap: 1em;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16em), 1fr));
-  align-items: start; /* kortti on vain sisältönsä korkuinen, ei tyhjää tilaa rivin pisimmän kortin mukaan */
+  align-items: stretch; /* rivin kortit ovat saman korkuisia */
 }
 
 @media (max-width: 700px) {
@@ -442,4 +442,10 @@ a.event-card:hover {
     gap: 0.6em;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Tykkäysnappi kortin alavasempaan kulmaan */
+.catch-card .catch-like {
+  margin-top: auto;
+  align-self: flex-start;
 }

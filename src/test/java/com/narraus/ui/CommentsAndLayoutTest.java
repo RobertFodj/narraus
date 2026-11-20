@@ -99,7 +99,8 @@ class CommentsAndLayoutTest {
                 css = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
             }
             assertTrue(css.contains("minmax(min(100%, 16em), 1fr)"), "Leveällä näytöllä auto-fit-ruudukko");
-            assertTrue(css.contains("align-items: start"), "Kortit eivät veny rivin korkuisiksi");
+            assertTrue(css.contains("align-items: stretch"), "Rivin kortit ovat saman korkuisia");
+            assertTrue(css.contains(".catch-card .catch-like"), "Tykkäysnappi kortin alareunaan");
             assertTrue(css.contains("repeat(2, minmax(0, 1fr))"), "Puhelimella aina kaksi saraketta");
             assertEquals("44em", feed.getMaxWidth(), "Leveys riittää kahdelle 16 em kortille vierekkäin, mutta ei kolmelle");
         }
