@@ -1,6 +1,7 @@
 package com.narraus.domain;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +20,12 @@ public class AccountService {
     private final FollowRepository follows;
     private final PushSubscriptionRepository pushSubscriptions;
     private final PasswordEncoder encoder;
+    private final PersistentTokenRepository loginTokens;
 
     AccountService(UserRepository users, PostRepository posts, PostService postService, ChatService chats,
                    LikeRepository likes, CommentRepository comments, EventService eventService, AdminPolicy admin, FollowRepository follows, PushSubscriptionRepository pushSubscriptions,
-                   PasswordEncoder encoder) {
+                   PasswordEncoder encoder, PersistentTokenRepository loginTokens) {
+        this.loginTokens = loginTokens;
         this.users = users;
         this.posts = posts;
         this.postService = postService;
@@ -62,6 +65,7 @@ public class AccountService {
         follows.deleteByFollowed(user);
         pushSubscriptions.deleteByUser(user);
         chats.removeUser(user);
+        loginTokens.removeUserTokens(user.getUsername()); // "pysy kirjautuneena" -tunnisteet kumoutuvat
         users.delete(user);
     }
 }
