@@ -97,7 +97,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         nav.addItem(feed);
         nav.addItem(new SideNavItem("Käyttäjät", UsersView.class, VaadinIcon.USERS.create()));
         nav.addItem(chat);
-        nav.addItem(new SideNavItem("Kartta", MapView.class, VaadinIcon.MAP_MARKER.create()));
         nav.addItem(new SideNavItem("Kilpailut", EventsView.class, VaadinIcon.TROPHY.create()));
         nav.addItem(new SideNavItem("Oma tili", ProfileView.class, VaadinIcon.USER.create()));
         addToDrawer(nav);
@@ -109,7 +108,6 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         addBarLink(bar, "Saaliit", FeedView.class, VaadinIcon.PICTURE, feedBarBadge);
         addBarLink(bar, "Käyttäjät", UsersView.class, VaadinIcon.USERS, null);
         addBarLink(bar, "Viestit", ChatView.class, VaadinIcon.CHAT, chatBarBadge);
-        addBarLink(bar, "Kartta", MapView.class, VaadinIcon.MAP_MARKER, null);
         addBarLink(bar, "Kilpailut", EventsView.class, VaadinIcon.TROPHY, null);
         addBarLink(bar, "Oma tili", ProfileView.class, VaadinIcon.USER, null);
         getElement().appendChild(bar.getElement());

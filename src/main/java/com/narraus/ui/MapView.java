@@ -25,11 +25,17 @@ public class MapView extends VerticalLayout {
     private final MapLibre map;
     private final List<CatchPost> shown;
 
+    /** Itsenäinen sivu (vanha osoite /map toimii edelleen). */
     public MapView(PostService posts, CurrentUser currentUser, MapConfig mapConfig) {
+        this(posts, currentUser, mapConfig, false);
+    }
+
+    /** {@code embedded}: Saaliit-sivun "Kartalla"-välilehti, jossa ei ole omaa otsikkoa. */
+    MapView(PostService posts, CurrentUser currentUser, MapConfig mapConfig, boolean embedded) {
         this.posts = posts;
         this.me = currentUser.get();
         setSizeFull();
-        setPadding(true);
+        setPadding(!embedded);
 
         shown = posts.withLocation();
         String info = shown.isEmpty()
@@ -38,13 +44,15 @@ public class MapView extends VerticalLayout {
 
         map = mapConfig.newMap();
         map.setWidthFull();
-        map.setHeight("calc(100dvh - 9rem - var(--bottom-bar-space, 0rem))");
+        map.setHeight(embedded ? "calc(100dvh - 15rem - var(--bottom-bar-space, 0rem))"
+                : "calc(100dvh - 9rem - var(--bottom-bar-space, 0rem))");
         map.setMinHeight("20em");
         for (CatchPost p : shown) {
             map.addMarker(p.getLongitude(), p.getLatitude()).addClickListener(() -> openDetails(p));
         }
 
-        add(new H2("Kartta"), new Span(info), map);
+        if (embedded) add(new Span(info), map);
+        else add(new H2("Kartta"), new Span(info), map);
     }
 
     /** Avaa pisteen julkaisun tiedot. */

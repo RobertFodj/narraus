@@ -37,8 +37,11 @@ public class FeedView extends VerticalLayout {
     private final UnreadService unread;
     private final FeedBroadcaster broadcaster;
     private Registration registration;
-    private final Tabs tabs = new Tabs(new Tab("Kaikki"), new Tab("Seuraamani"));
+    private final Tabs tabs = new Tabs(new Tab("Kaikki"), new Tab("Seuraamani"), new Tab("Kartalla"));
     private final Div list = new Div();
+    /** "Kartalla"-välilehden sisältö; kartta rakennetaan vasta kun välilehti valitaan. */
+    private final Div mapBox = new Div();
+    private final MapConfig mapConfig;
 
     public FeedView(PostService posts, CurrentUser currentUser, UnreadService unread, FeedBroadcaster broadcaster,
                     MapConfig mapConfig, GeocodingService geocoder) {
@@ -46,6 +49,7 @@ public class FeedView extends VerticalLayout {
         this.currentUser = currentUser;
         this.unread = unread;
         this.broadcaster = broadcaster;
+        this.mapConfig = mapConfig;
         setMaxWidth("44em");
         setAlignItems(FlexComponent.Alignment.STRETCH);
         getStyle().set("margin", "0 auto");
@@ -69,7 +73,10 @@ public class FeedView extends VerticalLayout {
         bar.addClassName("island");
         bar.setPadding(false);
         bar.setSpacing(false);
-        add(bar, list);
+        mapBox.addClassName("feed-map");
+        mapBox.setWidthFull();
+        mapBox.setVisible(false);
+        add(bar, list, mapBox);
         refresh();
         // Syöte katsottiin juuri: uudet julkaisut eivät ole enää "uusia"
         unread.markFeedSeen(currentUser.get());
@@ -103,7 +110,23 @@ public class FeedView extends VerticalLayout {
     private int loaded = PAGE_SIZE;
     private Button more;
 
+    private boolean mapSelected() {
+        return tabs.getSelectedIndex() == 2;
+    }
+
     private void refresh() {
+        if (mapSelected()) {
+            // Kartta-välilehti: kartta rakennetaan vasta nyt; uusi julkaisu ei nollaa kartan näkymää
+            list.setVisible(false);
+            mapBox.setVisible(true);
+            if (mapBox.getComponentCount() == 0) {
+                mapBox.add(new MapView(posts, currentUser, mapConfig, true));
+            }
+            return;
+        }
+        mapBox.removeAll();
+        mapBox.setVisible(false);
+        list.setVisible(true);
         list.removeAll();
         AppUser me = currentUser.get();
         boolean followed = tabs.getSelectedIndex() == 1;

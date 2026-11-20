@@ -31,14 +31,14 @@ class BottomBarTest {
     }
 
     @Test
-    void ordinaryUser_hasSixTabs_likeTheSidePanel() {
+    void ordinaryUser_hasFiveTabs_likeTheSidePanel() {
         AppUser me = TestData.newUser(users, "Minä");
 
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(FeedView.class);
 
-            assertEquals(List.of("Saaliit", "Käyttäjät", "Viestit", "Kartta", "Kilpailut", "Oma tili"), labels(window));
+            assertEquals(List.of("Saaliit", "Käyttäjät", "Viestit", "Kilpailut", "Oma tili"), labels(window));
         }
     }
 
@@ -50,7 +50,7 @@ class BottomBarTest {
             var window = user.newWindow();
             window.navigate(FeedView.class);
 
-            assertEquals(6, labels(window).size());
+            assertEquals(5, labels(window).size());
             assertFalse(labels(window).contains("Ylläpito"));
         }
     }

@@ -29,14 +29,28 @@ class MapViewTest {
     private PostService posts;
 
     @Test
-    void sideNav_hasMapLink() {
+    void map_isNotInTheMenus_butTheThirdTabOfTheFeed() {
         AppUser me = TestData.newUser(users, "Minä");
+        posts.create(me, TestData.unique("Hauki"), null, null, null, null, null, null, null, 61.5, 25.5);
 
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(FeedView.class);
 
-            assertTrue(window.find(SideNavItem.class).all().stream().anyMatch(i -> "Kartta".equals(i.getLabel())));
+            assertTrue(window.find(SideNavItem.class).all().stream().noneMatch(i -> "Kartta".equals(i.getLabel())),
+                    "Kartta ei ole enää valikossa");
+            var tabs = window.find(com.vaadin.flow.component.tabs.Tabs.class).single();
+            var labels = tabs.getChildren().map(c -> ((com.vaadin.flow.component.tabs.Tab) c).getLabel()).toList();
+            assertEquals(java.util.List.of("Kaikki", "Seuraamani", "Kartalla"), labels);
+            assertTrue(window.find(MapView.class).all().isEmpty(), "Karttaa ei rakenneta ennen kuin välilehti valitaan");
+
+            tabs.setSelectedIndex(2);
+
+            assertEquals(1, window.find(MapView.class).all().size(), "Kartta näkyy Kartalla-välilehdellä");
+            assertTrue(window.find(MapView.class).single().markerCount() >= 1);
+
+            tabs.setSelectedIndex(0);
+            assertTrue(window.find(MapView.class).all().isEmpty(), "Takaisin syötteeseen: kartta poistuu");
         }
     }
 
