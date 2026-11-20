@@ -98,10 +98,12 @@ public class ProfileView extends VerticalLayout {
             admin.addClassNames("profile-admin", "profile-section-button");
             buttons.add(admin);
         }
+        LanguageMenu language = LanguageMenu.labeled();
+        language.addClassName("profile-section-button");
         buttons.add(sectionButton("Ilmoitukset", VaadinIcon.BELL, Section.NOTIFICATIONS),
                 sectionButton("Omat julkaisut", VaadinIcon.PICTURE, Section.POSTS),
                 sectionButton("Seuraajat", VaadinIcon.USERS, Section.FOLLOWERS),
-                sectionButton("Tilin muokkaus", VaadinIcon.USER_CARD, Section.ACCOUNT));
+                sectionButton("Tilin muokkaus", VaadinIcon.USER_CARD, Section.ACCOUNT), language);
         add(buttons);
 
         if (open != null) {

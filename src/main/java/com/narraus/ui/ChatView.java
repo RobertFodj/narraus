@@ -142,6 +142,7 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
         this.unread = unread;
         this.me = currentUser.get();
         addClassName("chat-view");
+        input.setI18n(new com.vaadin.flow.component.messages.MessageInputI18n().setMessage("Kirjoita viesti…").setSend("Lähetä"));
         setSizeFull();
         setPadding(true);
 

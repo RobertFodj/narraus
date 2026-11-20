@@ -36,7 +36,7 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         login.setForgotPasswordButtonVisible(false);
 
         H1 title = new H1("🎣 Narraus");
-        add(title, login, new RouterLink("Ei vielä tunnusta? Rekisteröidy", RegisterView.class));
+        add(cornerLanguage(), title, login, new RouterLink("Ei vielä tunnusta? Rekisteröidy", RegisterView.class));
     }
 
     @Override
@@ -44,5 +44,12 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         if (event.getLocation().getQueryParameters().getParameters().containsKey("error")) {
             login.setError(true);
         }
+    }
+
+    /** Kielivalinta oikeassa yläkulmassa jo ennen kirjautumista. */
+    static com.vaadin.flow.component.Component cornerLanguage() {
+        var corner = new com.vaadin.flow.component.html.Div(LanguageMenu.iconOnly());
+        corner.addClassName("language-corner");
+        return corner;
     }
 }

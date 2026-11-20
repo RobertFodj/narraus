@@ -23,8 +23,8 @@ class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, PersistentLoginService rememberMe) throws Exception {
-        // Sovelluksen kuvakkeet ovat julkisia (kirjautumissivu tarvitsee ne ennen kirjautumista)
-        http.authorizeHttpRequests(auth -> auth.requestMatchers("/icons/**").permitAll());
+        // Sovelluksen kuvakkeet ja kielitiedostot ovat julkisia (kirjautumissivu tarvitsee ne ennen kirjautumista)
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/icons/**", "/i18n/**").permitAll());
         // Pysy kirjautuneena: aina päällä, kantaan tallennettu ja kumottavissa (ks. PersistentLoginService)
         http.rememberMe(rm -> rm.rememberMeServices(rememberMe).key(rememberMeKey));
         http.with(VaadinSecurityConfigurer.vaadin(), c -> c.loginView(LoginView.class));

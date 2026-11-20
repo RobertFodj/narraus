@@ -53,7 +53,7 @@ public class RegisterView extends VerticalLayout {
         register.addThemeVariants(ButtonVariant.PRIMARY);
 
         H1 title = new H1("🎣 Liity Narraukseen");
-        add(new BackButton(LoginView.class), title, username, displayName, password, confirm, register,
+        add(LoginView.cornerLanguage(), new BackButton(LoginView.class), title, username, displayName, password, confirm, register,
                 new RouterLink("Minulla on jo tunnus", LoginView.class));
     }
 }

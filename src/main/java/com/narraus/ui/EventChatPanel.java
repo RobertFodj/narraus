@@ -37,6 +37,7 @@ class EventChatPanel extends VerticalLayout {
 
         MessageInput input = new MessageInput();
         input.addClassName("event-chat-input");
+        input.setI18n(new com.vaadin.flow.component.messages.MessageInputI18n().setMessage("Kirjoita viesti…").setSend("Lähetä"));
         input.setWidthFull();
         input.addSubmitListener(e -> send(e.getValue()));
 

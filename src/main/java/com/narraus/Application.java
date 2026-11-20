@@ -4,6 +4,7 @@ import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.page.Viewport;
+import com.vaadin.flow.component.page.Inline;
 import com.vaadin.flow.server.AppShellSettings;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.aura.Aura;
@@ -31,8 +32,18 @@ public class Application implements AppShellConfigurator {
     public void configurePage(AppShellSettings settings) {
         // Puhelimen näppäimistö pienentää sivun käytettävää aluetta (eikä peitä sisältöä sen päältä)
         settings.setViewport("width=device-width, initial-scale=1, interactive-widget=resizes-content");
+        // Kielituki (käännökset selaimessa); ladataan heti sivun alussa, jotta sivu ei välähdä suomeksi
+        settings.addInlineWithContents(Inline.Position.PREPEND, i18nScript(), Inline.Wrapping.JAVASCRIPT);
         settings.addFavIcon("icon", "icons/favicon.svg", "any");
         settings.addFavIcon("icon", "favicon.ico", "16x16 32x32 48x48");
+    }
+
+    private static String i18nScript() {
+        try (var in = Application.class.getResourceAsStream("/META-INF/resources/narraus-i18n.js")) {
+            return new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        } catch (java.io.IOException | NullPointerException e) {
+            throw new IllegalStateException("narraus-i18n.js puuttuu", e);
+        }
     }
 
     public static void main(String[] args) {

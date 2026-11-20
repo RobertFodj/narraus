@@ -564,3 +564,76 @@ body:has(.chat-view.chat-open) vaadin-app-layout .mobile-content {
 .profile-logout {
   align-self: flex-start;
 }
+
+/* ---------- Kielen vaihto: edistymispalkki ---------- */
+.narraus-lang-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 30, 50, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.narraus-lang-card {
+  width: min(20rem, calc(100vw - 48px));
+  padding: 20px 22px;
+  border-radius: 20px;
+  background: var(--vaadin-background-color, #fff);
+  color: var(--vaadin-text-color, #111);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.narraus-lang-name {
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+.narraus-lang-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(127, 127, 127, 0.25);
+  overflow: hidden;
+}
+
+.narraus-lang-fill {
+  width: 0;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--aura-accent-color, #2a5bd7);
+  transition: width 0.15s linear;
+}
+
+.narraus-lang-bar.indeterminate .narraus-lang-fill {
+  width: 40%;
+  animation: narraus-lang-slide 1s ease-in-out infinite;
+}
+
+@keyframes narraus-lang-slide {
+  0% { margin-left: -40%; }
+  100% { margin-left: 100%; }
+}
+
+/* Kielivalinta */
+.language-corner {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  right: 8px;
+  z-index: 50;
+}
+
+.language-menu-labeled {
+  justify-content: flex-start;
+}
+
+.language-menu-current {
+  margin-inline-start: 0.75em;
+  opacity: 0.7;
+}
+
+.language-menu-labeled.profile-section-button {
+  width: 100%;
+}
