@@ -1,0 +1,392 @@
+/*
+ * Narrauksen omat tyylit Aura-teeman päälle. Värit ovat Auran oletukset.
+ */
+
+/*
+ * "Saaret": haku, otsikko, välilehdet ja viestin kirjoituskenttä ovat omia kelluvia paloja. Sivun sisältö vierii
+ * niiden alla, mutta ne pysyvät paikoillaan. AppLayoutin sisältöalue on oma vieritettävä alueensa
+ * navigointipalkin alla, joten sticky + top kiinnittää saaren suoraan palkin alapuolelle.
+ */
+.island {
+  position: sticky;
+  top: 0.25rem;
+  /* Pienempi kuin sivupaneelin (2), jotta paneeli ja sen tausta peittävät saaret */
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 0.5rem 0.75rem;
+  background: var(--vaadin-background-color, Canvas);
+  border: 1px solid var(--vaadin-border-color, rgb(0 0 0 / 0.12));
+  border-radius: var(--vaadin-radius-l, 12px);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+}
+
+/* Kun sivupaneeli on auki ylikatteena (puhelin), saaret piiloutuvat sen alle */
+vaadin-app-layout[overlay][drawer-opened] .island {
+  visibility: hidden;
+}
+
+/* Saaliskortin reunat (sama ulkoasu kuin alkuperäisessä) */
+.catch-card {
+  border: 1px solid var(--vaadin-border-color, #ddd);
+  border-radius: var(--vaadin-radius-l, 8px);
+}
+
+/*
+ * Lukemattomien merkki sivupaneelin kohdassa: paksu musta pallo (vaaleassa teemassa; tummassa valkoinen),
+ * jossa numero 1-9 tai "9+". Keskitetty rivin pystysuunnassa.
+ */
+.nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  box-sizing: border-box;
+  min-width: 1.75em;
+  height: 1.75em;
+  padding: 0 0.45em;
+  border-radius: 999px;
+  background-color: light-dark(#000, #fff);
+  color: light-dark(#fff, #000);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/*
+ * Keskustelunäkymä: täyttää näkyvän alueen (100dvh seuraa selaimen näkyvää korkeutta, joten
+ * puhelimen näppäimistö pienentää sitä). Viestilista vierii omassa tilassaan ja syöttökenttä jää alas,
+ * eikä koko sivu liiku ylös kirjoittaessa.
+ */
+.chat-view {
+  box-sizing: border-box;
+  height: calc(100dvh - var(--vaadin-app-layout-navbar-offset-size, 4rem));
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Keskustelun ollessa auki sivu ei saa vieriä itse: muuten selain ja viestikenttä "kilpailevat" kirjoittaessa */
+html:has(.chat-view),
+body:has(.chat-view) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.chat-view .chat-main {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.chat-view .chat-main vaadin-message-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.chat-view .chat-main vaadin-message-input {
+  flex: 0 0 auto;
+  /* Vähintään 16 px: pienemmällä fontilla iOS zoomaa sivun kenttään kirjoittaessa */
+  font-size: 16px;
+  --vaadin-input-field-value-font-size: 16px;
+}
+
+.chat-view .chat-list {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.chat-view .chat-back {
+  display: none;
+}
+
+/* Kirjoitusnappi on vain puhelinleveydellä (leveällä näytöllä käytetään tavallista viestipalkkia) */
+.chat-view .chat-compose-bar {
+  display: none;
+}
+
+/* Keskustelulistan osioiden otsikot (Ryhmät / Yksityisviestit) */
+.chat-view .chat-section {
+  display: block;
+  margin: 0.9em 0 0.25em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.chat-view .chat-section:first-child {
+  margin-top: 0.25em;
+}
+
+/* Avoimen keskustelun otsikon selite (jäsenet tai "Yksityisviesti"), yksi rivi */
+.chat-view .chat-main h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.1rem;
+}
+
+.chat-view .chat-subtitle {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Kapea näyttö (puhelin): joko keskustelulista tai avoin keskustelu, ei molempia vierekkäin */
+@media (max-width: 700px) {
+  .chat-view .chat-list {
+    width: 100% !important;
+  }
+
+  .chat-view:not(.chat-open) .chat-main {
+    display: none;
+  }
+
+  .chat-view.chat-open .chat-list {
+    display: none;
+  }
+
+  .chat-view .chat-back {
+    display: inline-flex;
+  }
+
+  /* Otsikkosaari puhelimella yhteen kapeaan riviin: painikkeista vain kuvakkeet, nimi ei katkea useille riville */
+  .chat-view .chat-main .island:first-child {
+    padding: 0.25rem 0.5rem;
+  }
+
+  .chat-view .chat-header-btn {
+    font-size: 0;
+    --vaadin-icon-size: 1.4rem;
+    min-width: 2.5rem;
+    padding-inline: 0.5rem;
+  }
+
+  /*
+   * Puhelimella tavallinen viestipalkki on poissa. Sen tilalla on "Kirjoita viesti" -nappi, joka avaa
+   * kirjoitusikkunan näytön yläreunaan, jossa teksti näkyy aina näppäimistön yläpuolella.
+   * Kirjoittamisen ajan (.composing) nappikin on piilossa.
+   */
+  .chat-view .chat-main vaadin-message-input {
+    display: none;
+  }
+
+  .chat-view.chat-open .chat-compose-bar {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .chat-view.composing .chat-compose-bar {
+    display: none;
+  }
+}
+
+/* ---------- Kilpailut (eventit) ---------- */
+
+.event-section {
+  display: block;
+  margin: 0.9em 0 0.25em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+a.event-card {
+  display: block;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid var(--vaadin-border-color, rgb(0 0 0 / 0.12));
+  border-radius: var(--vaadin-radius-l, 12px);
+  background: var(--vaadin-background-color, Canvas);
+}
+
+a.event-card:hover {
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+}
+
+.event-card-title,
+.event-title {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.event-card-title {
+  font-size: 1.1rem;
+}
+
+/* Pitkä nimi saa rivittyä, jotta se näkyy kokonaan myös puhelimella */
+.event-title {
+  font-size: 1.1rem;
+  line-height: 1.25;
+}
+
+.event-line {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.event-badge {
+  flex: 0 0 auto;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.event-ongoing {
+  background: light-dark(#d9f2e1, #1f4a2f);
+  color: light-dark(#14532d, #b7f0c9);
+}
+
+.event-upcoming {
+  background: light-dark(#dbe8fb, #1e3a64);
+  color: light-dark(#1e3a8a, #bcd3f7);
+}
+
+.event-ended {
+  background: light-dark(#e6e8ec, #3a3d44);
+  color: light-dark(#4b5563, #cfd3da);
+}
+
+.event-info {
+  padding: 0.25rem 0.25rem 0;
+}
+
+.event-photo-rule {
+  font-weight: 600;
+}
+
+.event-results-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.event-muted {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.event-view .standing,
+.event-view .event-info {
+  align-self: stretch;
+  width: 100%;
+}
+
+.standing {
+  box-sizing: border-box;
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--vaadin-border-color, rgb(0 0 0 / 0.12));
+  border-radius: var(--vaadin-radius-l, 12px);
+  background: var(--vaadin-background-color, Canvas);
+}
+
+.standing-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.standing-rank {
+  min-width: 2rem;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.standing-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.standing-score {
+  flex: 0 0 auto;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+/* Lopputulosten palkintokorokkeen kolme parasta */
+.standing.podium {
+  border-width: 2px;
+}
+
+.standing.podium-1 {
+  background: light-dark(#fff6d6, #4a3f12);
+  border-color: #d4a017;
+}
+
+.standing.podium-2 {
+  background: light-dark(#eef0f3, #3b3f46);
+  border-color: #9aa3ad;
+}
+
+.standing.podium-3 {
+  background: light-dark(#fbe9dc, #4a3322);
+  border-color: #b87333;
+}
+
+.event-fish {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.event-fish-thumb {
+  width: 3.5em;
+  height: 3.5em;
+  object-fit: cover;
+  border-radius: var(--vaadin-radius-m, 6px);
+}
+
+.event-fish-text {
+  flex: 1 1 8em;
+  min-width: 0;
+}
+
+.event-flag {
+  display: block;
+  margin-top: 0.15rem;
+  font-weight: 600;
+  color: light-dark(#92400e, #fcd34d);
+}
+
+/* Kilpailun chat: leveällä näytöllä tavallinen viestikenttä, puhelimella kirjoitusnappi */
+.event-chat-list {
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.event-compose {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .event-chat-input {
+    display: none;
+  }
+
+  .event-compose {
+    display: inline-flex;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

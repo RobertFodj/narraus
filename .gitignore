@@ -13,3 +13,6 @@ types.d.ts
 
 # Claude Code: henkilökohtaiset asetukset
 .claude/settings.local.json
+
+# Paikalliset asetukset (sisältää mm. MapTiler-avaimen), ei versionhallintaan
+/config/

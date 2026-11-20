@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Narraus">
+  <title>Narraus</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82e8"/>
+      <stop offset="1" stop-color="#1550ad"/>
+    </linearGradient>
+  </defs>
+  <!-- tausta: pyöristetty neliö -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- aallot -->
+  <path d="M64 416 q48 -28 96 0 t96 0 t96 0 t96 0" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="16" stroke-linecap="round"/>
+  <!-- kala -->
+  <g fill="#ffffff">
+    <path d="M60 244 C108 138 262 118 344 218 L344 270 C262 370 108 350 60 244 Z"/>
+    <path d="M326 244 L452 148 Q418 244 452 340 Z"/>
+    <path d="M206 156 Q232 96 300 132 Q258 138 242 170 Z"/>
+  </g>
+  <!-- silmä ja kidus -->
+  <circle cx="136" cy="222" r="20" fill="#1a56b5"/>
+  <circle cx="143" cy="215" r="6" fill="#ffffff"/>
+  <path d="M206 186 Q176 244 206 302" fill="none" stroke="#1a56b5" stroke-width="12" stroke-linecap="round"/>
+</svg>
