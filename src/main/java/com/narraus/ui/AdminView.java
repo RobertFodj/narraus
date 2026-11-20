@@ -4,6 +4,13 @@ import com.narraus.domain.AdminPolicy;
 import com.narraus.domain.AdminService;
 import com.narraus.domain.AdminService.UserOverview;
 import com.narraus.domain.CompetitionEvent;
+import com.narraus.domain.SystemMessageService;
+import com.narraus.domain.UserService;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.H2;
@@ -38,8 +45,13 @@ public class AdminView extends VerticalLayout implements BeforeEnterObserver {
     private final AdminService adminService;
     private final AdminPolicy adminPolicy;
     private final CurrentUser currentUser;
+    private final UserService users;
+    private final SystemMessageService systemMessages;
 
-    public AdminView(AdminService adminService, AdminPolicy adminPolicy, CurrentUser currentUser) {
+    public AdminView(AdminService adminService, AdminPolicy adminPolicy, CurrentUser currentUser,
+                     UserService users, SystemMessageService systemMessages) {
+        this.users = users;
+        this.systemMessages = systemMessages;
         this.adminService = adminService;
         this.adminPolicy = adminPolicy;
         this.currentUser = currentUser;
@@ -87,7 +99,16 @@ public class AdminView extends VerticalLayout implements BeforeEnterObserver {
                     || o.username().toLowerCase().contains(q));
         });
 
-        add(new H2("Ylläpito"), summary, filter, grid);
+        // Narraus-viestit lähetetään täältä, eivät tavallisten viestien kautta
+        Button sendSystem = new Button("Lähetä Narraus-viesti", VaadinIcon.MEGAPHONE.create(),
+                e -> new SystemMessageDialog(users, systemMessages, me).open());
+        sendSystem.addThemeVariants(ButtonVariant.PRIMARY);
+        sendSystem.addClassName("admin-send-system");
+        HorizontalLayout header = new HorizontalLayout(new H2("Ylläpito"), sendSystem);
+        header.setWidthFull();
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
+        header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        add(header, summary, filter, grid);
     }
 
     static String eventNames(List<CompetitionEvent> events) {

@@ -87,20 +87,17 @@ class SystemMessageViewTest {
     // ---- ylläpitäjän lähetysnappi ----
 
     @Test
-    void sendButton_isForTheAdminOnly_andSeparateFromNewGroup() {
+    void sendButton_isInAdminView_forTheAdminOnly_andNotInChats() {
         admin();
-        AppUser normal = TestData.newUser(users, "Tavallinen");
 
-        try (var adminUser = app.newUser("robbe", "USER"); var normalUser = app.newUser(normal.getUsername(), "USER")) {
+        try (var adminUser = app.newUser("robbe", "USER")) {
             var adminWindow = adminUser.newWindow();
-            var normalWindow = normalUser.newWindow();
             adminWindow.navigate(ChatView.class);
-            normalWindow.navigate(ChatView.class);
+            assertFalse(hasButton(adminWindow, "Lähetä Narraus-viesti"), "Keskusteluissa ei enää lähetysnappia");
+            assertTrue(hasButton(adminWindow, "Uusi ryhmä"));
 
-            assertTrue(hasButton(adminWindow, "Lähetä Narraus-viesti"));
-            assertTrue(hasButton(adminWindow, "Uusi ryhmä"), "Tavallinen viestitoiminto säilyy omana nappinaan");
-            assertFalse(hasButton(normalWindow, "Lähetä Narraus-viesti"), "Tavallinen käyttäjä ei voi lähettää");
-            assertTrue(hasButton(normalWindow, "Uusi ryhmä"));
+            adminWindow.navigate(AdminView.class);
+            assertTrue(hasButton(adminWindow, "Lähetä Narraus-viesti"), "Lähetys on Ylläpito-sivulla");
         }
     }
 
@@ -113,7 +110,7 @@ class SystemMessageViewTest {
 
         try (var adminUser = app.newUser("robbe", "USER")) {
             var window = adminUser.newWindow();
-            window.navigate(ChatView.class);
+            window.navigate(AdminView.class);
 
             window.findButton().withText("Lähetä Narraus-viesti").click();
             assertTrue(toAllBox(window).getValue(), "Oletuksena kaikille");
@@ -142,7 +139,7 @@ class SystemMessageViewTest {
 
         try (var adminUser = app.newUser("robbe", "USER")) {
             var window = adminUser.newWindow();
-            window.navigate(ChatView.class);
+            window.navigate(AdminView.class);
             window.findButton().withText("Lähetä Narraus-viesti").click();
 
             window.test(toAllBox(window)).uncheck();
@@ -165,7 +162,7 @@ class SystemMessageViewTest {
 
         try (var adminUser = app.newUser("robbe", "USER")) {
             var window = adminUser.newWindow();
-            window.navigate(ChatView.class);
+            window.navigate(AdminView.class);
             window.findButton().withText("Lähetä Narraus-viesti").click();
 
             window.test(toAllBox(window)).uncheck();

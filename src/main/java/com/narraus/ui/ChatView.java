@@ -155,14 +155,6 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
         listHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         listHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         VerticalLayout left = new VerticalLayout(listHeader, convList);
-        if (adminPolicy.isAdmin(me)) {
-            // Narraus-viestit lähetetään omasta napista, eivät tavallisten viestien kautta
-            Button sendSystem = new Button("Lähetä Narraus-viesti", VaadinIcon.MEGAPHONE.create(),
-                    e -> openSystemSendDialog());
-            sendSystem.addThemeVariants(ButtonVariant.SMALL);
-            sendSystem.addClassName("chat-send-system");
-            left.addComponentAtIndex(1, sendSystem);
-        }
         left.addClassName("chat-list");
         left.setWidth("16em");
         left.setPadding(false);
@@ -399,64 +391,6 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
     private void markSystemRead() {
         if (systemMessages.markAllRead(me)) {
             getUI().ifPresent(UnreadChanged::fire);
-        }
-    }
-
-    /** Ylläpitäjän lähetysikkuna: kaikille tai valituille käyttäjille. */
-    private void openSystemSendDialog() {
-        Dialog d = new Dialog();
-        d.setHeaderTitle("Lähetä Narraus-viesti");
-        d.setWidth("min(34em, 95vw)");
-
-        Checkbox toAll = new Checkbox("Kaikille käyttäjille");
-        toAll.setValue(true);
-        MultiSelectComboBox<AppUser> recipients = new MultiSelectComboBox<>("Vastaanottajat");
-        recipients.setItems(
-                query -> users.searchOthers(query.getFilter().orElse(""), me, query.getOffset(), query.getLimit())
-                        .stream(),
-                query -> users.countOthers(query.getFilter().orElse(""), me));
-        recipients.setItemLabelGenerator(AppUser::getDisplayName);
-        recipients.setWidthFull();
-        recipients.setEnabled(false);
-        toAll.addValueChangeListener(e -> recipients.setEnabled(!e.getValue()));
-
-        TextArea text = new TextArea("Viesti");
-        text.setMaxLength(SystemMessageService.MAX_LENGTH);
-        text.setMinRows(3);
-        text.setWidthFull();
-        text.setHelperText("Vastaanottaja saa ilmoituksen ja viestin lähettäjältä Narraus. Viestiin ei voi vastata.");
-        d.add(new VerticalLayout(toAll, recipients, text));
-
-        Button send = new Button("Lähetä", VaadinIcon.PAPERPLANE.create(), e -> {
-            if (toAll.getValue()) {
-                ConfirmDialog confirm = new ConfirmDialog();
-                confirm.setHeader("Lähetetäänkö kaikille?");
-                confirm.setText("Viesti lähetetään " + users.countOthers("", me) + " käyttäjälle.");
-                confirm.setCancelable(true);
-                confirm.setCancelText("Peruuta");
-                confirm.setConfirmText("Lähetä");
-                confirm.addConfirmListener(c -> sendSystem(d, true, java.util.Set.of(), text.getValue()));
-                confirm.open();
-            } else {
-                sendSystem(d, false, recipients.getValue(), text.getValue());
-            }
-        });
-        send.addThemeVariants(ButtonVariant.PRIMARY);
-        d.getFooter().add(new Button("Peruuta", e -> d.close()), send);
-        d.open();
-    }
-
-    private void sendSystem(Dialog dialog, boolean toAll, Set<AppUser> chosen, String text) {
-        try {
-            int count = toAll ? systemMessages.sendToAll(me, text) : systemMessages.send(me, chosen, text);
-            dialog.close();
-            Notification.show("Viesti lähetetty " + count + (count == 1 ? " käyttäjälle" : " käyttäjälle"))
-                    .addThemeVariants(NotificationVariant.SUCCESS);
-        } catch (SecurityException ex) {
-            Notification.show("Vain ylläpitäjä voi lähettää Narraus-viestejä").addThemeVariants(NotificationVariant.ERROR);
-            dialog.close();
-        } catch (IllegalArgumentException ex) {
-            Notification.show(ex.getMessage()).addThemeVariants(NotificationVariant.ERROR);
         }
     }
 

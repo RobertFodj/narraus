@@ -38,7 +38,7 @@ public class MapView extends VerticalLayout {
 
         map = mapConfig.newMap();
         map.setWidthFull();
-        map.setHeight("calc(100dvh - 9rem)");
+        map.setHeight("calc(100dvh - 9rem - var(--bottom-bar-space, 0rem))");
         map.setMinHeight("20em");
         for (CatchPost p : shown) {
             map.addMarker(p.getLongitude(), p.getLatitude()).addClickListener(() -> openDetails(p));
