@@ -140,6 +140,7 @@
  "Keskustelu": "Chat",
  "Kilpailu on poistettu": "The competition has been deleted",
  "📷 Vain kuvalliset saaliit lasketaan mukaan kilpailuun.": "📷 Only catches with a photo count in the competition.",
+ "Voittaa se, jolla on eniten kaloja.": "The one with the most fish wins.",
  "Poistu kilpailusta": "Leave competition",
  "Liity kilpailuun": "Join competition",
  "✔ Osallistuit tähän kilpailuun": "✔ You took part in this competition",
@@ -270,6 +271,7 @@
  "{0} jäsentä: {1}": "{0} members: {1}",
  "Ryhmä": "Group",
  "Näytä aiemmat viestit ({0})": "Show earlier messages ({0})",
+ "Tulos on {0} parhaan kalan summa.": "The result is the sum of the {0} best fish.",
  "Kilpailu \"{0}\", sen osallistujat, tarkistukset ja keskustelu poistetaan pysyvästi. Saaliit säilyvät.": "The competition \"{0}\", its participants, checks and chat will be permanently deleted. The catches are kept.",
  "Osallistujia yhteensä: {0}": "Total participants: {0}",
  "🚫 Poistetut kalat ({0})": "🚫 Removed fish ({0})",
@@ -307,5 +309,8 @@
  "Käännökset (valinnainen)": "Translations (optional)",
  "Jos käännöstä ei ole, näytetään suomenkielinen teksti.": "If a translation is missing, the Finnish text is shown.",
  "Nimi ({0})": "Name ({0})",
- "Kuvaus ({0})": "Description ({0})"
+ "Kuvaus ({0})": "Description ({0})",
+ "Voittaa se, jolla on painavin kala.": "The one with the heaviest fish wins.",
+ "Voittaa se, jolla on pisin kala.": "The one with the longest fish wins.",
+ "Voittaa se, jolla on suurin ympärysmitta.": "The one with the largest girth wins."
 }

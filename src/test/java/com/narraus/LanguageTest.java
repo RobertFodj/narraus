@@ -120,7 +120,8 @@ class LanguageTest {
         for (String code : List.of("sv", "no", "en")) {
             var dict = dictionary(code);
             for (String key : List.of("Suurin paino", "Pisin kala", "Suurin ympärysmitta", "Eniten kaloja",
-                    "Pisin kala")) {
+                    "Voittaa se, jolla on painavin kala.", "Voittaa se, jolla on pisin kala.",
+                    "Voittaa se, jolla on suurin ympärysmitta.", "Voittaa se, jolla on eniten kaloja.")) {
                 assertTrue(dict.containsKey(key), code + " puuttuu: " + key);
             }
         }
