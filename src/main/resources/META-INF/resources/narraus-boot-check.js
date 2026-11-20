@@ -43,6 +43,23 @@
     } catch (e) { /* ilmoitus on vain apu */ }
   }
 
+  // Kaatuminen kesken latauksen (esim. iPhonen "Toistuva ongelma verkkosivulla"): sivun skriptit eivät ehdi ilmoittaa
+  // mitään, joten merkitään lataus alkaneeksi ja poistetaan merkintä vasta, kun sovellus on piirtynyt.
+  // Jos merkintä on jäänyt edelliseltä kerralta, ilmoitetaan siitä palvelimelle seuraavalla latauksella.
+  var KEY = 'narraus-boot-started';
+  try {
+    var previous = window.localStorage.getItem(KEY);
+    if (previous && Date.now() - Number(previous) < 600000) {
+      errors.push('edellinen lataus ei päättynyt (kaatuminen tai keskeytys) ' + Math.round((Date.now() - Number(previous)) / 1000) + ' s sitten');
+      report();
+    }
+    window.localStorage.setItem(KEY, String(Date.now()));
+  } catch (e) { /* tallennus ei käytössä */ }
+
+  function markRendered() {
+    try { window.localStorage.removeItem(KEY); } catch (e) { /* ei väliä */ }
+  }
+
   var box = null;
   function show() {
     if (box) return;
@@ -68,11 +85,17 @@
     box = null;
   }
 
+  var early = setInterval(function () {
+    if (rendered()) { markRendered(); clearInterval(early); }
+  }, 500);
+
   setTimeout(function () {
+    clearInterval(early);
+    if (rendered()) markRendered();
     if (!rendered()) show();
     // Hidas yhteys: ohje poistuu, kun sovellus lopulta piirtyy
     var iv = setInterval(function () {
-      if (rendered()) { hide(); clearInterval(iv); }
+      if (rendered()) { hide(); markRendered(); clearInterval(iv); }
     }, 1000);
     setTimeout(function () { clearInterval(iv); }, 120000);
   }, 10000);
