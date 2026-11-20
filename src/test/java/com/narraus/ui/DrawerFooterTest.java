@@ -97,4 +97,19 @@ class DrawerFooterTest {
         assertTrue(logoutRule.contains("padding: 6px 8px"), "Sama täyte kuin valikon riveillä");
         assertTrue(logoutRule.contains("border-radius: 9px"), "Sama kulma kuin valikon riveillä");
     }
+
+    @Test
+    void styles_liftBottomElementsOnPhones_forTheIphoneCornerAndToolbar() throws Exception {
+        String css;
+        try (var in = DrawerFooterTest.class.getResourceAsStream("/META-INF/resources/styles.css")) {
+            css = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        int lift = css.indexOf("Puhelin: alareunan hallintaelementit");
+        assertTrue(lift >= 0, "Nosto puuttuu");
+        String rules = css.substring(lift);
+        assertTrue(rules.contains("@media (max-width: 700px)"));
+        assertTrue(rules.contains(".drawer-footer {") && rules.contains("padding-bottom: max(40px"), "Kirjaudu ulos ylemmäs");
+        assertTrue(rules.contains(".chat-view {") && rules.contains("env(safe-area-inset-bottom)"), "Viestikenttä ylemmäs");
+        assertTrue(rules.contains(".event-compose {"), "Kilpailun kirjoitusnappi ylemmäs");
+    }
 }

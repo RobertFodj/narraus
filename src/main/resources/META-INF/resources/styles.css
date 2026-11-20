@@ -449,3 +449,21 @@ a.event-card:hover {
   margin-top: auto;
   align-self: flex-start;
 }
+
+/*
+ * Puhelin: alareunan hallintaelementit nostetaan hieman ylös, jotta iPhonen pyöristetty kulma,
+ * kotipalkki ja Safarin alapalkki eivät peitä niitä (nimi, Kirjaudu ulos, Kirjoita viesti).
+ */
+@media (max-width: 700px) {
+  .drawer-footer {
+    padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 24px));
+  }
+
+  .chat-view {
+    padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 8px));
+  }
+
+  .event-compose {
+    margin-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
