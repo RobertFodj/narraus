@@ -38,7 +38,7 @@ class BottomBarTest {
             var window = user.newWindow();
             window.navigate(FeedView.class);
 
-            assertEquals(List.of("Saaliit", "Käyttäjät", "Viestit", "Kartta", "Kilpailut", "Oma sivu"), labels(window));
+            assertEquals(List.of("Saaliit", "Käyttäjät", "Viestit", "Kartta", "Kilpailut", "Oma tili"), labels(window));
         }
     }
 

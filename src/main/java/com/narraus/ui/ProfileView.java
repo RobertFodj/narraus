@@ -23,6 +23,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
@@ -33,7 +35,7 @@ import java.util.List;
  * muokkaus- ja poistonappeineen sekä tilin poisto. Salasanaa tai sen tiivistettä ei näytetä koskaan.
  */
 @Route(value = "profile", layout = MainLayout.class)
-@PageTitle("Oma sivu | Narraus")
+@PageTitle("Oma tili | Narraus")
 @PermitAll
 public class ProfileView extends VerticalLayout {
 
@@ -63,40 +65,113 @@ public class ProfileView extends VerticalLayout {
         refresh();
     }
 
+    /** Osiot, jotka aukeavat napeista; sisältö rakennetaan vasta kun osio avataan. */
+    enum Section { NOTIFICATIONS, POSTS, FOLLOWERS, ACCOUNT }
+
+    private Section open;
+
     private void refresh() {
         removeAll();
         AppUser me = currentUser.get();
 
-        add(new H2("Oma sivu"),
+        add(new H2("Oma tili"),
                 new Span("Käyttäjätunnus: " + me.getUsername()),
                 new Span("Näyttönimi: " + me.getDisplayName()),
                 new Span("Seuraajia: " + users.followerCount(me)),
                 new Span("Seurattavia: " + users.followingCount(me)),
                 new Span("Julkaisuja: " + posts.postCount(me)));
 
+        // Napit: yksi osio kerrallaan auki, uusi painallus sulkee sen
+        Div buttons = new Div();
+        buttons.addClassName("profile-sections");
         if (adminPolicy.isAdmin(me)) {
-            // Ylläpito löytyy ylläpitäjän omalta sivulta, ilmoitusasetusten yläpuolelta
-            com.vaadin.flow.component.button.Button admin = new com.vaadin.flow.component.button.Button("Ylläpito",
-                    com.vaadin.flow.component.icon.VaadinIcon.COG.create(),
-                    e -> com.vaadin.flow.component.UI.getCurrent().navigate(AdminView.class));
-            admin.addClassName("profile-admin");
-            add(admin);
+            Button admin = new Button("Ylläpito", VaadinIcon.COG.create(),
+                    e -> UI.getCurrent().navigate(AdminView.class));
+            admin.addClassNames("profile-admin", "profile-section-button");
+            buttons.add(admin);
         }
+        buttons.add(sectionButton("Ilmoitukset", VaadinIcon.BELL, Section.NOTIFICATIONS),
+                sectionButton("Omat julkaisut", VaadinIcon.PICTURE, Section.POSTS),
+                sectionButton("Seuraajat", VaadinIcon.USERS, Section.FOLLOWERS),
+                sectionButton("Tilin muokkaus", VaadinIcon.USER_CARD, Section.ACCOUNT));
+        add(buttons);
 
-        add(new NotificationSettings(push, currentUser));
+        if (open != null) {
+            VerticalLayout panel = switch (open) {
+                case NOTIFICATIONS -> notificationsPanel();
+                case POSTS -> postsPanel(me);
+                case FOLLOWERS -> followersPanel(me);
+                case ACCOUNT -> accountPanel();
+            };
+            panel.addClassName("profile-panel");
+            add(panel);
+        }
+    }
 
-        add(new H3("Omat julkaisut"));
+    private Button sectionButton(String label, VaadinIcon icon, Section section) {
+        Button b = new Button(label, icon.create(), e -> {
+            open = open == section ? null : section;
+            refresh();
+        });
+        b.addClassName("profile-section-button");
+        b.getElement().setAttribute("aria-expanded", String.valueOf(open == section));
+        if (open == section) b.addClassName("profile-section-active");
+        return b;
+    }
+
+    private VerticalLayout notificationsPanel() {
+        VerticalLayout panel = new VerticalLayout(new NotificationSettings(push, currentUser));
+        panel.setPadding(false);
+        return panel;
+    }
+
+    private VerticalLayout postsPanel(AppUser me) {
+        VerticalLayout panel = new VerticalLayout(new H3("Omat julkaisut"));
+        panel.setPadding(false);
         List<CatchPost> mine = posts.byAuthor(me);
         if (mine.isEmpty()) {
-            add(new Paragraph("Et ole vielä julkaissut mitään. Lisää ensimmäinen saaliisi Saaliit-sivulta."));
+            panel.add(new Paragraph("Et ole vielä julkaissut mitään. Lisää ensimmäinen saaliisi Saaliit-sivulta."));
         }
-        mine.forEach(p -> add(postWithActions(p, me)));
+        mine.forEach(p -> panel.add(postWithActions(p, me)));
+        return panel;
+    }
 
-        // Toiseksi alimpana: tilin ja omien tietojen muokkaus (ei julkaisuja)
+    /** Ketkä seuraavat sinua ja ketä sinä seuraat; myöhemmin tähän tulevat myös aiemmin voitetut kilpailut. */
+    private VerticalLayout followersPanel(AppUser me) {
+        VerticalLayout panel = new VerticalLayout();
+        panel.setPadding(false);
+        panel.add(new H3("Seuraajat"), userList(users.followersOf(me), "Kukaan ei seuraa sinua vielä."),
+                new H3("Seuraat"), userList(users.followingOf(me), "Et seuraa vielä ketään. Löydät kalastajia Käyttäjät-sivulta."));
+        return panel;
+    }
+
+    private VerticalLayout userList(List<AppUser> list, String emptyText) {
+        VerticalLayout box = new VerticalLayout();
+        box.setPadding(false);
+        box.setSpacing(false);
+        box.addClassName("profile-user-list");
+        if (list.isEmpty()) box.add(new Paragraph(emptyText));
+        for (AppUser u : list) {
+            Button b = new Button(u.getDisplayName(), VaadinIcon.USER.create(),
+                    e -> UI.getCurrent().navigate(UserProfileView.class, u.getId()));
+            b.addThemeVariants(ButtonVariant.TERTIARY);
+            b.addClassName("profile-user");
+            box.add(b);
+        }
+        return box;
+    }
+
+    /** Tilin muokkaus: selitys sekä Muokkaa tiliä- ja Poista tili -napit. */
+    private VerticalLayout accountPanel() {
         Button editAccount = new Button("Muokkaa tiliä", VaadinIcon.COG.create(), e -> openEditAccountDialog());
-        add(editAccount);
-
-        add(deleteAccountSection());
+        VerticalLayout edit = new VerticalLayout(new H3("Tilin tiedot"),
+                new Paragraph("Voit vaihtaa näyttönimesi, käyttäjätunnuksesi ja salasanasi. "
+                        + "Muut käyttäjät näkevät vain näyttönimesi."),
+                editAccount);
+        edit.setPadding(false);
+        VerticalLayout panel = new VerticalLayout(edit, deleteAccountSection());
+        panel.setPadding(false);
+        return panel;
     }
 
     private VerticalLayout postWithActions(CatchPost p, AppUser me) {

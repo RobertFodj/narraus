@@ -63,7 +63,7 @@ class CatchDialogTest {
             var window = user.newWindow();
             openDialog(window);
 
-            window.findTextField().withLabel("Kalalaji").setValue("Hauki");
+            TestData.species(window).setValue("Hauki");
             window.findTextField().withLabel("Paikka").setValue("Päijänne");
             window.findButton().withText("Hae kartalta").click();
             window.findButton().withText("Julkaise").click();
@@ -84,7 +84,7 @@ class CatchDialogTest {
             CatchDialog dialog = openDialog(window);
 
             dialog.setPin(62.24, 25.75); // sama polku kuin kartan klikkaus
-            window.findTextField().withLabel("Kalalaji").setValue("Kuha");
+            TestData.species(window).setValue("Kuha");
             window.findButton().withText("Julkaise").click();
 
             CatchPost post = onlyPostOf(me);
@@ -122,7 +122,7 @@ class CatchDialogTest {
 
             assertNull(dialog.pinLatitude());
             assertNull(dialog.pinLongitude());
-            window.findTextField().withLabel("Kalalaji").setValue("Ahven");
+            TestData.species(window).setValue("Ahven");
             window.findButton().withText("Julkaise").click();
             CatchPost post = onlyPostOf(me);
             assertNull(post.getLatitude());
@@ -168,7 +168,7 @@ class CatchDialogTest {
             var window = user.newWindow();
             openDialog(window);
 
-            window.findTextField().withLabel("Kalalaji").setValue("Hauki");
+            TestData.species(window).setValue("Hauki");
             window.findTextField().withLabel("Paikka").setValue("Lahti");
             window.findButton().withText("Julkaise").click();
 
@@ -187,7 +187,7 @@ class CatchDialogTest {
             var window = user.newWindow();
             openDialog(window);
 
-            window.findTextField().withLabel("Kalalaji").setValue("Särki");
+            TestData.species(window).setValue("Särki");
             window.findButton().withText("Julkaise").click();
 
             CatchPost post = onlyPostOf(me);
@@ -205,7 +205,7 @@ class CatchDialogTest {
             var window = user.newWindow();
             openDialog(window);
 
-            window.findTextField().withLabel("Kalalaji").setValue("Lahna");
+            TestData.species(window).setValue("Lahna");
             window.findTextField().withLabel("Paikka").setValue("Salainen lampi");
             window.findButton().withText("Julkaise").click();
 
@@ -234,7 +234,7 @@ class CatchDialogTest {
             assertTrue(java.time.Duration.between(suggested, java.time.LocalDateTime.now()).abs().toMinutes() <= 2,
                     "Ja nykyinen kellonaika");
 
-            window.findTextField().withLabel("Kalalaji").setValue("Hauki");
+            TestData.species(window).setValue("Hauki");
             window.findButton().withText("Julkaise").click();
 
             var saved = java.time.LocalDateTime.ofInstant(onlyPostOf(me).getCaughtAt(), java.time.ZoneId.systemDefault());
@@ -250,7 +250,7 @@ class CatchDialogTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             openDialog(window);
-            window.findTextField().withLabel("Kalalaji").setValue("Ahven");
+            TestData.species(window).setValue("Ahven");
             window.test(timePicker(window)).setValue(wanted);
             window.findButton().withText("Julkaise").click();
 
@@ -265,7 +265,7 @@ class CatchDialogTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             openDialog(window);
-            window.findTextField().withLabel("Kalalaji").setValue("Kuha");
+            TestData.species(window).setValue("Kuha");
             window.test(timePicker(window)).setValue(null);
             window.findButton().withText("Julkaise").click();
 
@@ -284,6 +284,7 @@ class CatchDialogTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             window.findButton().withText("Muokkaa").click();
 
             assertEquals(oldTime, timePicker(window).getValue(), "Muokkaus näyttää tallennetun ajan");
@@ -293,6 +294,24 @@ class CatchDialogTest {
             window.findButton().withText("Tallenna").click();
 
             assertEquals(newTime, java.time.LocalDateTime.ofInstant(onlyPostOf(me).getCaughtAt(), java.time.ZoneId.systemDefault()));
+        }
+    }
+
+    @Test
+    void speciesIsAComboBox_withTheSixteenFish_inOrder_andNoDescriptions() {
+        AppUser me = TestData.newUser(users, "Minä");
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            window.navigate(FeedView.class);
+            window.findButton().withText("Uusi saalis").click();
+
+            var species = TestData.species(window);
+            var items = species.getListDataView().getItems().toList();
+            assertEquals(java.util.List.of("Ahven", "Hauki", "Kuha", "Made", "Särki", "Lahna", "Salakka", "Pasuri",
+                    "Sorva", "Säyne", "Kirjolohi", "Siika", "Muikku", "Taimen", "Lohi", "Harjus"), items);
+            assertTrue(items.stream().allMatch(i -> !i.contains(" ") && !i.contains(".")), "Vain lajin nimi, ei selitystä");
+            assertTrue(species.isAllowCustomValue(), "Muun lajin voi kirjoittaa");
         }
     }
 }

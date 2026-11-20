@@ -64,6 +64,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
 
             assertEquals(2, buttons(window, "Muokkaa"));
             assertEquals(2, buttons(window, "Poista"));
@@ -96,11 +97,12 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
 
             window.findButton().withText("Muokkaa").click();
 
             CatchDialog dialog = window.find(CatchDialog.class).single();
-            assertEquals(species, window.findTextField().withLabel("Kalalaji").component().getValue());
+            assertEquals(species, TestData.species(window).getValue());
             assertEquals("Päijänne", window.findTextField().withLabel("Paikka").component().getValue());
             assertEquals(61.5, dialog.pinLatitude());
             assertEquals(25.5, dialog.pinLongitude());
@@ -118,9 +120,10 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             window.findButton().withText("Muokkaa").click();
 
-            window.findTextField().withLabel("Kalalaji").setValue(newSpecies);
+            TestData.species(window).setValue(newSpecies);
             window.findButton().withText("Tallenna").click();
 
             assertEquals(newSpecies, only(me).getSpecies());
@@ -139,9 +142,10 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             window.findButton().withText("Muokkaa").click();
 
-            window.findTextField().withLabel("Kalalaji").setValue("");
+            TestData.species(window).setValue(null);
             window.findButton().withText("Tallenna").click();
 
             assertEquals(species, only(me).getSpecies(), "Tyhjää lajia ei tallenneta");
@@ -156,6 +160,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             window.findButton().withText("Muokkaa").click();
 
             window.findTextField().withLabel("Paikka").setValue("Päijänne");
@@ -177,6 +182,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             window.findButton().withText("Muokkaa").click();
 
             window.findButton().withText("Poista piste").click();
@@ -197,6 +203,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             window.findButton().withText("Muokkaa").click();
             CatchDialog dialog = window.find(CatchDialog.class).single();
             assertNull(dialog.pinLatitude());
@@ -219,6 +226,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             window.findButton().withText("Muokkaa").click();
             window.find(CatchDialog.class).single().setPin(65.0, 26.0);
             window.findButton().withText("Tallenna").click();
@@ -241,6 +249,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             assertTrue(hasSpan(window, "Julkaisuja: 1"));
 
             window.findButton().withText("Poista").click();
@@ -267,6 +276,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
 
             window.findButton().withText("Poista").click();
             window.test(window.find(ConfirmDialog.class).single()).cancel();
@@ -286,6 +296,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
 
             window.find(Button.class).all().stream().filter(b -> "Poista".equals(b.getText())).skip(1).findFirst()
                     .ifPresent(b -> window.test(b).click()); // toinen kortti = vanhempi julkaisu
@@ -305,6 +316,7 @@ class ProfileManageTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
             window.findButton().withText("Poista").click();
             window.test(window.find(ConfirmDialog.class).single()).confirm();
 

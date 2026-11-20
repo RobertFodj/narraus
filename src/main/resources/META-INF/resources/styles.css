@@ -631,3 +631,27 @@ a.event-card:hover {
 .narraus-popup-ok {
   align-self: flex-end;
 }
+
+/* ---------- Oma tili: napit, joista osiot aukeavat ---------- */
+.profile-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.profile-section-button {
+  justify-content: flex-start;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.profile-section-active {
+  background: color-mix(in srgb, var(--aura-accent-color, #1f4fd6) 14%, transparent);
+  color: var(--aura-accent-color, #1f4fd6);
+}
+
+.profile-panel {
+  padding-top: 4px;
+}

@@ -44,6 +44,7 @@ class AccountDeletionViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
 
             assertTrue(window.find(H3.class).all().stream().anyMatch(h -> "Poista tili".equals(h.getText())));
             assertTrue(hasButton(window, "Poista tili…"));
@@ -72,6 +73,7 @@ class AccountDeletionViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
 
             window.findButton().withText("Poista tili…").click();
 
@@ -89,6 +91,7 @@ class AccountDeletionViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
             window.findButton().withText("Poista tili…").click();
 
             window.test(window.find(PasswordField.class).withLabel("Vahvista salasanalla").single())
@@ -109,6 +112,7 @@ class AccountDeletionViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
             window.findButton().withText("Poista tili…").click();
 
             window.findButton().withText("Poista tili pysyvästi").click();
@@ -125,6 +129,7 @@ class AccountDeletionViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
             window.findButton().withText("Poista tili…").click();
 
             window.findButton().withText("Peruuta").click();
@@ -142,6 +147,7 @@ class AccountDeletionViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
             window.findButton().withText("Poista tili…").click();
             window.test(window.find(PasswordField.class).withLabel("Vahvista salasanalla").single())
                     .setValue("salasana123");

@@ -109,18 +109,53 @@ class CommentsAndLayoutTest {
     // ---- oma tili ----
 
     @Test
-    void ownPage_hasEditAccountButton_secondFromBottom_andNoPostEditing() {
+    void ownPage_hasSectionButtons_andOpensAccountEditingWithEditAndDeleteButtons() {
         AppUser me = TestData.newUser(users, "Minä");
 
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
-            ProfileView view = window.navigate(ProfileView.class);
+            window.navigate(ProfileView.class);
 
-            var children = view.getChildren().toList();
-            assertTrue(children.get(children.size() - 2) instanceof Button b && "Muokkaa tiliä".equals(b.getText()),
-                    "Muokkaa tiliä on toiseksi alimpana, tilin poiston yläpuolella");
+            for (String label : new String[]{"Ilmoitukset", "Omat julkaisut", "Seuraajat", "Tilin muokkaus"}) {
+                assertNotNull(first(window, label), "Nappi " + label);
+            }
+            assertEquals(0, window.find(Button.class).all().stream().filter(b -> "Muokkaa tiliä".equals(b.getText())).count(),
+                    "Osiot ovat suljettuina, kunnes napista painetaan");
+
+            TestData.openSection(window, "Tilin muokkaus");
+
+            assertNotNull(first(window, "Muokkaa tiliä"));
+            assertNotNull(first(window, "Poista tili…"));
             assertEquals(0, window.find(Button.class).all().stream().filter(b -> "Muokkaa".equals(b.getText())).count(),
                     "Napista ei muokata saaliita");
+
+            TestData.openSection(window, "Tilin muokkaus"); // uusi painallus sulkee osion
+            assertEquals(0, window.find(Button.class).all().stream().filter(b -> "Poista tili…".equals(b.getText())).count());
+        }
+    }
+
+    @Test
+    void followersSection_listsWhoFollowsYou_andWhomYouFollow() {
+        AppUser me = TestData.newUser(users, "Minä");
+        AppUser fan = TestData.newUser(users, "Fani");
+        AppUser idol = TestData.newUser(users, "Idoli");
+        users.toggleFollow(fan, me);
+        users.toggleFollow(me, idol);
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            window.navigate(ProfileView.class);
+            TestData.openSection(window, "Seuraajat");
+
+            var names = window.find(Button.class).all().stream().filter(b -> b.hasClassName("profile-user"))
+                    .map(Button::getText).toList();
+            assertTrue(names.contains(fan.getDisplayName()), "Seuraaja näkyy");
+            assertTrue(names.contains(idol.getDisplayName()), "Seurattava näkyy");
+            assertEquals(2, names.size());
+
+            window.test(window.find(Button.class).all().stream()
+                    .filter(b -> idol.getDisplayName().equals(b.getText())).findFirst().orElseThrow()).click();
+            assertEquals(UserProfileView.class, window.getCurrentView().getClass(), "Nimestä avautuu käyttäjän sivu");
         }
     }
 
@@ -132,6 +167,7 @@ class CommentsAndLayoutTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
             window.test(first(window, "Muokkaa tiliä")).click();
 
             TextField name = window.find(TextField.class).withLabel("Näyttönimi").single();
@@ -153,6 +189,7 @@ class CommentsAndLayoutTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
             window.test(first(window, "Muokkaa tiliä")).click();
 
             window.test(window.find(PasswordField.class).withLabel("Nykyinen salasana").single()).setValue("vaara");
@@ -179,6 +216,7 @@ class CommentsAndLayoutTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
             window.test(first(window, "Muokkaa tiliä")).click();
 
             window.test(window.find(PasswordField.class).withLabel("Nykyinen salasana").single()).setValue("salasana123");
@@ -201,6 +239,7 @@ class CommentsAndLayoutTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Tilin muokkaus");
             window.test(first(window, "Muokkaa tiliä")).click();
 
             TextField username = window.find(TextField.class).withLabel("Käyttäjätunnus").single();

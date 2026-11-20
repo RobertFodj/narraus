@@ -54,6 +54,7 @@ class NotificationSettingsTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Ilmoitukset");
 
             assertTrue(window.find(H3.class).all().stream().anyMatch(h -> "Ilmoitukset".equals(h.getText())));
             assertTrue(hasSpan(window, "Ilmoitukset ovat pois päältä tällä laitteella."));
@@ -69,6 +70,7 @@ class NotificationSettingsTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Ilmoitukset");
 
             String text = window.find(Paragraph.class).all().stream().map(Paragraph::getText)
                     .filter(t -> t.contains("Saat ilmoituksen")).findFirst().orElseThrow();
@@ -86,9 +88,8 @@ class NotificationSettingsTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             ProfileView view = window.navigate(ProfileView.class);
-            NotificationSettings settings = view.getChildren()
-                    .filter(NotificationSettings.class::isInstance).map(NotificationSettings.class::cast)
-                    .findFirst().orElseThrow();
+            TestData.openSection(window, "Ilmoitukset");
+            NotificationSettings settings = window.find(NotificationSettings.class).single();
 
             settings.onSubscribed(subscription);
 
@@ -109,9 +110,8 @@ class NotificationSettingsTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             ProfileView view = window.navigate(ProfileView.class);
-            NotificationSettings settings = view.getChildren()
-                    .filter(NotificationSettings.class::isInstance).map(NotificationSettings.class::cast)
-                    .findFirst().orElseThrow();
+            TestData.openSection(window, "Ilmoitukset");
+            NotificationSettings settings = window.find(NotificationSettings.class).single();
 
             settings.onUnsubscribed(subscription);
 
@@ -131,9 +131,8 @@ class NotificationSettingsTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             ProfileView view = window.navigate(ProfileView.class);
-            NotificationSettings settings = view.getChildren()
-                    .filter(NotificationSettings.class::isInstance).map(NotificationSettings.class::cast)
-                    .findFirst().orElseThrow();
+            TestData.openSection(window, "Ilmoitukset");
+            NotificationSettings settings = window.find(NotificationSettings.class).single();
 
             settings.onUnsubscribed(othersDevice); // yritys poistaa toisen laite
 

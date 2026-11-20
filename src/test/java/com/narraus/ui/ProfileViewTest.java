@@ -47,6 +47,7 @@ class ProfileViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
 
             assertTrue(hasSpan(window, "Käyttäjätunnus: " + me.getUsername()), "Kirjautumistunnus pitäisi näkyä omalla sivulla");
             assertTrue(hasSpan(window, "Näyttönimi: " + me.getDisplayName()));
@@ -64,6 +65,7 @@ class ProfileViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             var view = window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
 
             String html = view.getElement().getOuterHTML();
             assertFalse(html.contains(hash), "Salasanatiivistettä ei saa näyttää");
@@ -83,6 +85,7 @@ class ProfileViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
 
             assertTrue(hasSpeciesHeading(window, mine), "Oma julkaisu pitäisi näkyä");
             assertFalse(hasSpeciesHeading(window, theirs), "Toisen julkaisua ei pidä näkyä omalla sivulla");
@@ -96,6 +99,7 @@ class ProfileViewTest {
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(ProfileView.class);
+            TestData.openSection(window, "Omat julkaisut");
 
             assertTrue(window.find(com.vaadin.flow.component.html.Paragraph.class).all().stream()
                     .anyMatch(p -> p.getText().startsWith("Et ole vielä julkaissut")));
@@ -111,8 +115,8 @@ class ProfileViewTest {
             var window = user.newWindow();
             window.navigate(FeedView.class);
 
-            assertTrue(window.find(SideNavItem.class).all().stream().anyMatch(i -> "Oma sivu".equals(i.getLabel())),
-                    "Sivunavigaatiossa pitäisi olla Oma sivu");
+            assertTrue(window.find(SideNavItem.class).all().stream().anyMatch(i -> "Oma tili".equals(i.getLabel())),
+                    "Sivunavigaatiossa pitäisi olla Oma tili");
         }
     }
 

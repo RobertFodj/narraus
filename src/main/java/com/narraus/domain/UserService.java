@@ -167,6 +167,18 @@ public class UserService implements UserDetailsService {
         return follows.countByFollower(user);
     }
 
+    /** Käyttäjät, jotka seuraavat annettua käyttäjää (aakkosjärjestyksessä). */
+    public List<AppUser> followersOf(AppUser user) {
+        return follows.findByFollowed(user).stream().map(Follow::getFollower)
+                .sorted(java.util.Comparator.comparing(u -> u.getDisplayName().toLowerCase())).toList();
+    }
+
+    /** Käyttäjät, joita annettu käyttäjä seuraa (aakkosjärjestyksessä). */
+    public List<AppUser> followingOf(AppUser user) {
+        return follows.findByFollower(user).stream().map(Follow::getFollowed)
+                .sorted(java.util.Comparator.comparing(u -> u.getDisplayName().toLowerCase())).toList();
+    }
+
     public boolean isFollowing(AppUser me, AppUser other) {
         return follows.existsByFollowerAndFollowed(me, other);
     }

@@ -5,6 +5,7 @@ import com.narraus.domain.GeocodingService;
 import com.narraus.domain.PostService;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
@@ -19,6 +20,7 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.streams.UploadHandler;
+import java.util.List;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -47,6 +49,11 @@ class CatchDialog extends Dialog {
     private String photoType;
 
     /** Uusi julkaisu. */
+    /** Valikon lajit järjestyksessä: yleisimmät, särkikalat, lohikalat. */
+    static final List<String> SPECIES = List.of("Ahven", "Hauki", "Kuha", "Made",
+            "Särki", "Lahna", "Salakka", "Pasuri", "Sorva", "Säyne",
+            "Kirjolohi", "Siika", "Muikku", "Taimen", "Lohi", "Harjus");
+
     CatchDialog(PostService posts, CurrentUser currentUser, MapConfig mapConfig, GeocodingService geocoder,
                 Runnable onSaved) {
         this(posts, currentUser, mapConfig, geocoder, null, onSaved);
@@ -59,9 +66,14 @@ class CatchDialog extends Dialog {
         setHeaderTitle(existing == null ? "Uusi saalis" : "Muokkaa julkaisua");
         setWidth("min(40em, 95vw)");
 
-        TextField species = new TextField("Kalalaji");
+        // Valikko yleisimmistä lajeista (ei selityksiä); lajia voi hakea kirjoittamalla nimen alkua.
+        // Muunkin lajin voi kirjoittaa, jos sitä ei löydy listalta.
+        ComboBox<String> species = new ComboBox<>("Kalalaji");
+        species.setItems(SPECIES);
+        species.setAllowCustomValue(true);
+        species.addCustomValueSetListener(ev -> species.setValue(ev.getDetail().trim()));
         species.setRequired(true);
-        species.setPlaceholder("esim. hauki");
+        species.setPlaceholder("Valitse tai hae lajia");
         NumberField weight = number("Paino (kg)");
         NumberField length = number("Pituus (cm)");
         NumberField girth = number("Ympärysmitta (cm)");
