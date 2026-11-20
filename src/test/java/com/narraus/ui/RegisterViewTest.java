@@ -79,4 +79,32 @@ class RegisterViewTest {
             assertFalse(users.find(username).isPresent());
         }
     }
+
+    @Test
+    void usernameField_saysNotEmail_andThatItIsPrivate() {
+        try (var anonymous = app.newUser()) {
+            var window = anonymous.newWindow();
+            window.navigate(RegisterView.class);
+
+            String help = window.findTextField().withLabel("Käyttäjätunnus").component().getHelperText();
+            assertTrue(help != null && help.startsWith("Ei sähköposti"), "Ohjeen pitää sanoa: Ei sähköposti. Nyt: " + help);
+            assertTrue(help.contains("näkyy vain sinulle"));
+        }
+    }
+
+    @Test
+    void blankDisplayName_isRejected_soTheUsernameIsNeverShownToOthers() {
+        String username = uniqueName();
+        try (var anonymous = app.newUser()) {
+            var window = anonymous.newWindow();
+            window.navigate(RegisterView.class);
+
+            fillForm(window, username, "salasana123", "salasana123");
+            window.findTextField().withLabel("Näytettävä nimi").setValue("   ");
+            window.findButton().withText("Luo tunnus").click();
+
+            assertEquals("Näyttönimi vaaditaan", window.findNotification().getText());
+            assertFalse(users.find(username).isPresent());
+        }
+    }
 }

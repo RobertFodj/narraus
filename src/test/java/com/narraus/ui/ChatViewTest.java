@@ -168,7 +168,7 @@ class ChatViewTest {
             assertTrue(groups.get(0).isGroupChat());
             assertEquals(groupName, groups.get(0).titleFor(me));
             assertTrue(hasTitle(window, groupName), "Uusi ryhmä pitäisi avautua");
-            assertTrue(hasButton(window, "👥 " + groupName), "Ryhmä pitäisi näkyä listassa");
+            assertTrue(hasButton(window, groupName), "Ryhmä pitäisi näkyä listassa");
         }
     }
 }

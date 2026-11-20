@@ -31,6 +31,7 @@ class ViewAccessTest {
     void anonymousUser_protectedViews_redirectToLogin() {
         try (var anonymous = app.newUser()) {
             var window = anonymous.newWindow();
+            window.navigate("users", LoginView.class);
             window.navigate("people", LoginView.class);
             window.navigate("chat", LoginView.class);
         }
@@ -57,7 +58,7 @@ class ViewAccessTest {
         try (var user = app.newUser(username, "USER")) {
             var window = user.newWindow();
             window.navigate(FeedView.class);
-            window.navigate(PeopleView.class);
+            window.navigate(UsersView.class);
             window.navigate(ChatView.class);
         }
     }
