@@ -6,6 +6,8 @@ import com.narraus.domain.EventService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Paragraph;
@@ -84,7 +86,33 @@ class EventDialog extends Dialog {
                 + "kilpailun aikana kilpailuun liittyneiltä. Kuvattomat saaliit eivät kelpaa.");
         rule.getStyle().set("opacity", "0.8").set("font-size", "0.9em");
 
-        FormLayout form = new FormLayout(name, description, starts, ends, metric, species, counted, rule);
+        // Käännökset (valinnaisia): nimi ja kuvaus ruotsiksi, norjaksi ja englanniksi; puuttuessa näytetään suomi
+        java.util.Map<Language, TextField> nameTranslations = new java.util.LinkedHashMap<>();
+        java.util.Map<Language, TextArea> descriptionTranslations = new java.util.LinkedHashMap<>();
+        VerticalLayout translations = new VerticalLayout();
+        translations.setPadding(false);
+        translations.add(new Paragraph("Jos käännöstä ei ole, näytetään suomenkielinen teksti."));
+        for (Language l : Language.values()) {
+            if (l == Language.FI) continue;
+            TextField tn = new TextField("Nimi (" + l.nativeName() + ")");
+            tn.setMaxLength(120);
+            tn.setWidthFull();
+            TextArea td = new TextArea("Kuvaus (" + l.nativeName() + ")");
+            td.setMaxLength(2000);
+            td.setWidthFull();
+            if (existing != null) {
+                if (existing.translatedName(l.code()) != null) tn.setValue(existing.translatedName(l.code()));
+                if (existing.translatedDescription(l.code()) != null) td.setValue(existing.translatedDescription(l.code()));
+            }
+            nameTranslations.put(l, tn);
+            descriptionTranslations.put(l, td);
+            translations.add(tn, td);
+        }
+        Details translationsBox = new Details("Käännökset (valinnainen)", translations);
+        translationsBox.addClassName("event-translations");
+
+        FormLayout form = new FormLayout(name, description, translationsBox, starts, ends, metric, species, counted, rule);
+        form.setColspan(translationsBox, 2);
         form.setColspan(name, 2);
         form.setColspan(description, 2);
         form.setColspan(rule, 2);
@@ -105,10 +133,14 @@ class EventDialog extends Dialog {
                 CompetitionEvent saved = existing == null
                         ? events.create(currentUser.get(), name.getValue(), description.getValue(),
                                 starts.getValue().atZone(zone).toInstant(), ends.getValue().atZone(zone).toInstant(),
-                                metric.getValue(), species.getValue(), n)
+                                metric.getValue(), canonicalSpecies(species.getValue()), n)
                         : events.update(existing.getId(), currentUser.get(), name.getValue(), description.getValue(),
                                 starts.getValue().atZone(zone).toInstant(), ends.getValue().atZone(zone).toInstant(),
-                                metric.getValue(), species.getValue(), n);
+                                metric.getValue(), canonicalSpecies(species.getValue()), n);
+                java.util.Map<String, EventService.Translation> byLanguage = new java.util.LinkedHashMap<>();
+                nameTranslations.forEach((l, tn) -> byLanguage.put(l.code(),
+                        new EventService.Translation(tn.getValue(), descriptionTranslations.get(l).getValue())));
+                saved = events.translate(saved.getId(), currentUser.get(), byLanguage);
                 close();
                 onSaved.accept(saved);
             } catch (SecurityException ex) {
@@ -120,5 +152,10 @@ class EventDialog extends Dialog {
         });
         save.addThemeVariants(ButtonVariant.PRIMARY);
         getFooter().add(new Button("Peruuta", e -> close()), save);
+    }
+
+    /** Laji tallennetaan suomenkielisenä, vaikka se kirjoitettaisiin toisella kielellä (esim. "pike" -> "Hauki"). */
+    private static String canonicalSpecies(String typed) {
+        return Species.canonical(typed).orElse(typed);
     }
 }

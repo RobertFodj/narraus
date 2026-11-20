@@ -90,6 +90,30 @@ public class EventService {
         return saved;
     }
 
+    /** Kilpailun nimen ja kuvauksen käännös yhdelle kielelle ("sv", "no" tai "en"). */
+    public record Translation(String name, String description) {}
+
+    /**
+     * Tallentaa kilpailun nimen ja kuvauksen käännökset (vain ylläpitäjä). Tyhjä käännös poistaa käännöksen,
+     * jolloin näytetään suomenkielinen teksti.
+     */
+    @Transactional
+    public CompetitionEvent translate(Long eventId, AppUser actor, java.util.Map<String, Translation> byLanguage) {
+        requireAdmin(actor);
+        CompetitionEvent event = require(eventId);
+        for (var e : byLanguage.entrySet()) {
+            Translation t = e.getValue();
+            String n = t.name() == null ? "" : t.name().trim();
+            String d = t.description() == null ? "" : t.description().trim();
+            if (n.length() > 120) throw new IllegalArgumentException("Nimi on liian pitkä (enintään 120 merkkiä)");
+            if (d.length() > 2000) throw new IllegalArgumentException("Kuvaus on liian pitkä (enintään 2000 merkkiä)");
+            event.translate(e.getKey(), n, d);
+        }
+        CompetitionEvent saved = events.save(event);
+        broadcaster.broadcast(eventId);
+        return saved;
+    }
+
     /** Poistaa kilpailun osallistujineen, tarkistuksineen ja keskusteluineen. Saaliit säilyvät. */
     @Transactional
     public void delete(Long eventId, AppUser actor) {

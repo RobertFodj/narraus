@@ -94,7 +94,7 @@ public class EventsView extends VerticalLayout {
         link.setRoute(EventView.class, e.getId());
         link.addClassName("event-card");
 
-        H3 name = new H3(e.getName());
+        H3 name = new H3(EventFormat.name(e));
         name.addClassName("event-card-title");
         Span badge = new Span(e.status().label());
         badge.addClassName("event-badge");

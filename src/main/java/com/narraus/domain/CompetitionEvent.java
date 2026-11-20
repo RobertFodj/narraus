@@ -26,6 +26,19 @@ public class CompetitionEvent {
     /** Kuinka monta kilpailijan parasta kalaa lasketaan yhteen (1 = vain paras). Eniten kaloja -kilpailussa aina 1. */
     @Column(nullable = false)
     private int countedFish = 1;
+    /** Valinnaiset käännökset (ruotsi, norja, englanti); puuttuessa näytetään suomenkielinen teksti. */
+    @Column(length = 120)
+    private String nameSv;
+    @Column(length = 120)
+    private String nameNo;
+    @Column(length = 120)
+    private String nameEn;
+    @Column(length = 2000)
+    private String descriptionSv;
+    @Column(length = 2000)
+    private String descriptionNo;
+    @Column(length = 2000)
+    private String descriptionEn;
     @ManyToOne(optional = false)
     private AppUser createdBy;
     @Column(nullable = false)
@@ -48,6 +61,53 @@ public class CompetitionEvent {
         this.metric = metric;
         this.species = species;
         this.countedFish = countedFish;
+    }
+
+    /** Kieli: "sv", "no" tai "en" (muulla arvolla suomi). Tyhjä käännös tallennetaan nulliksi. */
+    void translate(String language, String name, String description) {
+        String n = blankToNull(name);
+        String d = blankToNull(description);
+        switch (language) {
+            case "sv" -> { nameSv = n; descriptionSv = d; }
+            case "no" -> { nameNo = n; descriptionNo = d; }
+            case "en" -> { nameEn = n; descriptionEn = d; }
+            default -> throw new IllegalArgumentException("Tuntematon kieli");
+        }
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
+    }
+
+    /** Nimi annetulla kielellä (sv, no, en); jos käännöstä ei ole, suomenkielinen nimi. */
+    public String name(String language) {
+        String t = switch (language == null ? "fi" : language) {
+            case "sv" -> nameSv;
+            case "no" -> nameNo;
+            case "en" -> nameEn;
+            default -> null;
+        };
+        return t == null ? name : t;
+    }
+
+    /** Kuvaus annetulla kielellä; jos käännöstä ei ole, suomenkielinen kuvaus (tai null). */
+    public String description(String language) {
+        String t = switch (language == null ? "fi" : language) {
+            case "sv" -> descriptionSv;
+            case "no" -> descriptionNo;
+            case "en" -> descriptionEn;
+            default -> null;
+        };
+        return t == null ? description : t;
+    }
+
+    /** Käännetty nimi sellaisenaan (null, jos ei ole); lomakkeen esitäyttöä varten. */
+    public String translatedName(String language) {
+        return switch (language) { case "sv" -> nameSv; case "no" -> nameNo; case "en" -> nameEn; default -> null; };
+    }
+
+    public String translatedDescription(String language) {
+        return switch (language) { case "sv" -> descriptionSv; case "no" -> descriptionNo; case "en" -> descriptionEn; default -> null; };
     }
 
     public Long getId() { return id; }

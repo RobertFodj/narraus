@@ -137,7 +137,7 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
         EventStatus status = ev.status();
 
         BackButton back = new BackButton(EventsView.class);
-        H2 title = new H2(ev.getName());
+        H2 title = new H2(EventFormat.name(ev));
         title.addClassName("event-title");
         Span badge = new Span(status.label());
         badge.addClassName("event-badge");
@@ -162,8 +162,8 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
     private Div infoSection(CompetitionEvent ev) {
         Div info = new Div();
         info.addClassName("event-info");
-        if (ev.getDescription() != null) {
-            Paragraph description = new Paragraph(ev.getDescription());
+        if (EventFormat.description(ev) != null) {
+            Paragraph description = new Paragraph(EventFormat.description(ev));
             description.getStyle().set("white-space", "pre-wrap");
             info.add(description);
         }
@@ -242,7 +242,7 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
     private void confirmDelete(CompetitionEvent ev) {
         ConfirmDialog confirm = new ConfirmDialog();
         confirm.setHeader("Poistetaanko kilpailu?");
-        confirm.setText("Kilpailu \"" + ev.getName() + "\", sen osallistujat, tarkistukset ja keskustelu poistetaan "
+        confirm.setText("Kilpailu \"" + EventFormat.name(ev) + "\", sen osallistujat, tarkistukset ja keskustelu poistetaan "
                 + "pysyvästi. Saaliit säilyvät.");
         confirm.setCancelable(true);
         confirm.setCancelText("Peruuta");

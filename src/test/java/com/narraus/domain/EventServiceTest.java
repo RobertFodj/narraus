@@ -370,4 +370,52 @@ class EventServiceTest {
         // Näyttönimen vaihto ylläpitäjälle on silti sallittu
         assertFalse(users.updateAccount(a.getId(), "Robbe Uusi", "robbe", "", ""));
     }
+
+    // ---- nimen ja kuvauksen käännökset ----
+
+    @Test
+    void translations_areOptional_andFallBackToFinnish() {
+        CompetitionEvent e = ongoing(EventMetric.WEIGHT, null, 1);
+
+        assertEquals(e.getName(), e.name("sv"), "Ilman käännöstä suomenkielinen nimi");
+        assertEquals("Kuvaus", e.description("en"));
+
+        events.translate(e.getId(), admin(), java.util.Map.of(
+                "sv", new EventService.Translation("Höstabborren", "Beskrivning på svenska"),
+                "en", new EventService.Translation("Autumn perch", "")));
+        CompetitionEvent saved = events.find(e.getId()).orElseThrow();
+
+        assertEquals("Höstabborren", saved.name("sv"));
+        assertEquals("Beskrivning på svenska", saved.description("sv"));
+        assertEquals("Autumn perch", saved.name("en"));
+        assertEquals("Kuvaus", saved.description("en"), "Tyhjä kuvauskäännös: suomenkielinen kuvaus");
+        assertEquals(saved.getName(), saved.name("no"), "Norjan käännös puuttuu: suomi");
+        assertEquals(saved.getName(), saved.name("fi"));
+        assertEquals(saved.getName(), saved.name(null));
+    }
+
+    @Test
+    void emptyTranslation_removesIt() {
+        CompetitionEvent e = ongoing(EventMetric.WEIGHT, null, 1);
+        events.translate(e.getId(), admin(), java.util.Map.of("no", new EventService.Translation("Navn", "Tekst")));
+        assertEquals("Navn", events.find(e.getId()).orElseThrow().name("no"));
+
+        events.translate(e.getId(), admin(), java.util.Map.of("no", new EventService.Translation("  ", null)));
+
+        assertEquals(e.getName(), events.find(e.getId()).orElseThrow().name("no"));
+    }
+
+    @Test
+    void onlyTheAdmin_mayTranslate_andTooLongTextsAreRejected() {
+        CompetitionEvent e = ongoing(EventMetric.WEIGHT, null, 1);
+        AppUser normal = newUser("Tavallinen");
+
+        assertThrows(SecurityException.class, () -> events.translate(e.getId(), normal,
+                java.util.Map.of("sv", new EventService.Translation("x", "y"))));
+        assertThrows(IllegalArgumentException.class, () -> events.translate(e.getId(), admin(),
+                java.util.Map.of("sv", new EventService.Translation("x".repeat(121), ""))));
+        assertThrows(IllegalArgumentException.class, () -> events.translate(e.getId(), admin(),
+                java.util.Map.of("sv", new EventService.Translation("", "y".repeat(2001)))));
+        assertEquals(e.getName(), events.find(e.getId()).orElseThrow().name("sv"), "Hylätty käännös ei tallennu");
+    }
 }

@@ -476,4 +476,76 @@ class EventViewsTest {
             assertInstanceOf(EventsView.class, window.getCurrentView(), "Poistetun kilpailun katsoja ohjataan listaan");
         }
     }
+
+    // ---- kilpailun nimi ja tiedot käännettyinä ----
+
+    @Test
+    void nameAndDescription_areShownInTheUsersLanguage_withFinnishFallback() {
+        CompetitionEvent e = ongoing(unique("Syyskisa"), EventMetric.WEIGHT, 1);
+        events.translate(e.getId(), admin(), java.util.Map.of(
+                "sv", new EventService.Translation("Höstfisket", "Svensk beskrivning")));
+        AppUser me = TestData.newUser(users, "Minä");
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            window.navigate("event/" + e.getId(), EventView.class);
+            assertTrue(window.find(com.vaadin.flow.component.html.H2.class).all().stream()
+                    .anyMatch(h -> e.getName().equals(h.getText())), "Suomeksi suomenkielinen nimi");
+
+            window.getUI().setLocale(Language.SV.locale());
+            window.navigate(EventsView.class);
+            window.navigate("event/" + e.getId(), EventView.class);
+            assertTrue(window.find(com.vaadin.flow.component.html.H2.class).all().stream()
+                    .anyMatch(h -> "Höstfisket".equals(h.getText())), "Ruotsiksi käännetty nimi");
+            assertTrue(window.find(com.vaadin.flow.component.html.Paragraph.class).all().stream()
+                    .anyMatch(p -> "Svensk beskrivning".equals(p.getText())), "Käännetty kuvaus");
+
+            window.getUI().setLocale(Language.EN.locale());
+            window.navigate(EventsView.class);
+            window.navigate("event/" + e.getId(), EventView.class);
+            assertTrue(window.find(com.vaadin.flow.component.html.H2.class).all().stream()
+                    .anyMatch(h -> e.getName().equals(h.getText())), "Englannin käännös puuttuu: suomi");
+        }
+    }
+
+    @Test
+    void eventList_showsTheTranslatedName() {
+        CompetitionEvent e = ongoing(unique("Listakisa"), EventMetric.WEIGHT, 1);
+        events.translate(e.getId(), admin(), java.util.Map.of("no", new EventService.Translation("Listekonkurranse", "")));
+        AppUser me = TestData.newUser(users, "Minä");
+
+        try (var user = app.newUser(me.getUsername(), "USER")) {
+            var window = user.newWindow();
+            window.getUI().setLocale(Language.NO.locale());
+            window.navigate(EventsView.class);
+
+            assertTrue(window.find(com.vaadin.flow.component.html.H3.class).all().stream()
+                    .anyMatch(h -> "Listekonkurranse".equals(h.getText())));
+        }
+    }
+
+    @Test
+    void adminDialog_hasOptionalTranslationFields_andSavesThem() {
+        AppUser admin = admin();
+
+        try (var user = app.newUser("robbe", "USER")) {
+            var window = user.newWindow();
+            window.navigate(EventsView.class);
+            window.findButton().withText("Uusi kilpailu").click();
+
+            String name = unique("Dialogikisa");
+            window.findTextField().withLabel("Nimi").setValue(name);
+            window.findTextField().withLabel("Nimi (Svenska)").setValue("Dialogtävling");
+            window.find(com.vaadin.flow.component.textfield.TextArea.class).all().stream()
+                    .filter(t -> "Kuvaus (English)".equals(t.getLabel())).findFirst().orElseThrow()
+                    .setValue("English description");
+            window.findButton().withText("Luo kilpailu").click();
+
+            CompetitionEvent saved = events.all().stream().filter(x -> x.getName().equals(name)).findFirst().orElseThrow();
+            assertEquals("Dialogtävling", saved.name("sv"));
+            assertEquals(name, saved.name("en"), "Englannin nimeä ei annettu: suomi");
+            assertEquals("English description", saved.description("en"));
+            assertEquals(admin.getId(), saved.getCreatedBy().getId());
+        }
+    }
 }

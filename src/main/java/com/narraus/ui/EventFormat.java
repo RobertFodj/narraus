@@ -25,4 +25,14 @@ final class EventFormat {
     static String statusClass(EventStatus s) {
         return "event-badge event-" + s.name().toLowerCase();
     }
+
+    /** Kilpailun nimi käyttäjän kielellä (suomi, jos käännöstä ei ole). */
+    static String name(CompetitionEvent e) {
+        return e.name(Language.current().code());
+    }
+
+    /** Kilpailun kuvaus käyttäjän kielellä (suomi, jos käännöstä ei ole); null, jos kuvausta ei ole. */
+    static String description(CompetitionEvent e) {
+        return e.description(Language.current().code());
+    }
 }

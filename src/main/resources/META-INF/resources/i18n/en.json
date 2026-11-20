@@ -309,5 +309,9 @@
  "Ladataan kieltä…": "Loading language…",
  "Kieli vaihdettu": "Language changed",
  "Kielen lataus epäonnistui": "Failed to load language",
- "Muuta kieltä": "Change language"
+ "Muuta kieltä": "Change language",
+ "Käännökset (valinnainen)": "Translations (optional)",
+ "Jos käännöstä ei ole, näytetään suomenkielinen teksti.": "If a translation is missing, the Finnish text is shown.",
+ "Nimi ({0})": "Name ({0})",
+ "Kuvaus ({0})": "Description ({0})"
 }
