@@ -17,7 +17,8 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.AfterNavigationEvent;
@@ -76,10 +77,14 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
         Button logout = new Button("Kirjaudu ulos", VaadinIcon.SIGN_OUT.create(), e -> currentUser.logout());
         logout.addThemeVariants(ButtonVariant.TERTIARY);
-        HorizontalLayout footer = new HorizontalLayout(new Span(me.getDisplayName()), logout);
+        // Nimi omalla rivillään ja Kirjaudu ulos -nappi sen alla (ei vierekkäin, jolloin rivi meni vinoon)
+        Span userName = new Span(me.getDisplayName());
+        userName.getStyle().set("font-weight", "600");
+        VerticalLayout footer = new VerticalLayout(userName, logout);
+        footer.addClassName("drawer-footer");
         footer.setPadding(true);
-        footer.setSpacing(true);
-        footer.getStyle().set("flex-wrap", "wrap");
+        footer.setSpacing(false);
+        footer.setAlignItems(FlexComponent.Alignment.START);
         addToDrawer(footer);
 
         refreshBadges();
