@@ -47,68 +47,17 @@ class CommentsAndLayoutTest {
     // ---- kommentit ----
 
     @Test
-    void commentButton_hidesComments_untilPressed_thenOpensDialogOnTop() {
+    void card_hasNoCommentButton() {
         AppUser me = TestData.newUser(users, "Minä");
-        AppUser other = TestData.newUser(users, "Kommentoija");
-        var post = posts.create(me, TestData.unique("Hauki"), null, null, null, null, null, null, null);
-        posts.addComment(post.getId(), other, "Hieno kala!");
+        posts.create(me, TestData.unique("Hauki"), null, null, null, null, null, null, null);
 
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate(FeedView.class);
 
-            assertNotNull(first(window, "Kommentoi"), "Jokaisessa saaliissa on Kommentoi-nappi");
-            assertFalse(dialogOpen(window), "Kommentit ovat piilossa ennen painallusta");
-            assertFalse(window.find(Span.class).all().stream().anyMatch(s -> "Hieno kala!".equals(s.getText())));
-
-            window.test(first(window, "Kommentoi")).click();
-
-            assertTrue(dialogOpen(window));
-            assertTrue(window.find(com.vaadin.flow.component.html.Paragraph.class).all().stream()
-                    .anyMatch(p -> "Hieno kala!".equals(p.getText())), "Kommentti näkyy dialogissa");
-            assertTrue(window.find(Span.class).all().stream()
-                    .anyMatch(s -> other.getDisplayName().equals(s.getText())), "Kommentoijan näyttönimi näkyy");
+            assertTrue(window.find(Button.class).all().stream().noneMatch(b -> "Kommentoi".equals(b.getText())));
         }
     }
-
-    @Test
-    void writingAComment_savesItAndShowsIt() {
-        AppUser me = TestData.newUser(users, "Minä");
-        var post = posts.create(me, TestData.unique("Ahven"), null, null, null, null, null, null, null);
-
-        try (var user = app.newUser(me.getUsername(), "USER")) {
-            var window = user.newWindow();
-            window.navigate(FeedView.class);
-            window.test(first(window, "Kommentoi")).click();
-
-            window.test(window.find(TextArea.class).withLabel("Kirjoita kommentti").single())
-                    .setValue("Upea saalis");
-            window.test(first(window, "Lähetä")).click();
-
-            assertEquals(1, posts.commentCount(post));
-            assertEquals("Upea saalis", posts.comments(post).get(0).getText());
-            assertTrue(window.find(com.vaadin.flow.component.html.Paragraph.class).all().stream()
-                    .anyMatch(p -> "Upea saalis".equals(p.getText())));
-        }
-    }
-
-    @Test
-    void emptyComment_isNotSaved() {
-        AppUser me = TestData.newUser(users, "Minä");
-        var post = posts.create(me, TestData.unique("Kuha"), null, null, null, null, null, null, null);
-
-        try (var user = app.newUser(me.getUsername(), "USER")) {
-            var window = user.newWindow();
-            window.navigate(FeedView.class);
-            window.test(first(window, "Kommentoi")).click();
-            window.test(first(window, "Lähetä")).click();
-
-            assertEquals(0, posts.commentCount(post));
-            assertEquals("Kommentti ei voi olla tyhjä", window.findNotification().getText());
-        }
-    }
-
-    // ---- kuvat ja asettelu ----
 
     @Test
     void photo_isSmallInTheCard_andOpensLargeWhenClicked() {
@@ -150,6 +99,7 @@ class CommentsAndLayoutTest {
                 css = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
             }
             assertTrue(css.contains("minmax(min(100%, 16em), 1fr)"), "Leveällä näytöllä auto-fit-ruudukko");
+            assertTrue(css.contains("align-items: start"), "Kortit eivät veny rivin korkuisiksi");
             assertTrue(css.contains("repeat(2, minmax(0, 1fr))"), "Puhelimella aina kaksi saraketta");
             assertEquals("44em", feed.getMaxWidth(), "Leveys riittää kahdelle 16 em kortille vierekkäin, mutta ei kolmelle");
         }

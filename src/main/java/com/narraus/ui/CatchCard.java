@@ -61,10 +61,7 @@ class CatchCard extends VerticalLayout {
         if (!stats.isEmpty()) add(new Span(String.join("  ·  ", stats)));
         if (p.getDescription() != null) add(new Paragraph(p.getDescription()));
 
-        Button comment = new Button("Kommentoi", VaadinIcon.COMMENT_O.create(),
-                e -> new CommentsDialog(posts, p, me).open());
-        comment.addThemeVariants(ButtonVariant.TERTIARY);
-        add(new HorizontalLayout(likeButton(posts, p, me), comment));
+        add(likeButton(posts, p, me));
     }
 
     /** Kuvan klikkaus avaa kuvan isona; uusi klikkaus tai ulkopuolelle painaminen sulkee sen. */
