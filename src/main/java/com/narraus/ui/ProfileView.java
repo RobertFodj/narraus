@@ -28,6 +28,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.PermitAll;
+import org.vaadin.firitin.appframework.MenuItem;
 import java.util.List;
 
 /**
@@ -37,6 +38,7 @@ import java.util.List;
 @Route(value = "profile", layout = MainLayout.class)
 @PageTitle("Oma tili | Narraus")
 @PermitAll
+@MenuItem(title = "Oma tili", icon = VaadinIcon.USER, order = 50)
 public class ProfileView extends VerticalLayout {
 
     private final UserService users;
@@ -80,6 +82,12 @@ public class ProfileView extends VerticalLayout {
                 new Span("Seuraajia: " + users.followerCount(me)),
                 new Span("Seurattavia: " + users.followingCount(me)),
                 new Span("Julkaisuja: " + posts.postCount(me)));
+
+        // Kirjaudu ulos löytyy täältä (puhelimella ei ole sivupaneelia, jonka alareunassa se on)
+        Button logout = new Button("Kirjaudu ulos", VaadinIcon.SIGN_OUT.create(), e -> currentUser.logout());
+        logout.addThemeVariants(ButtonVariant.TERTIARY);
+        logout.addClassName("profile-logout");
+        add(logout);
 
         // Napit: yksi osio kerrallaan auki, uusi painallus sulkee sen
         Div buttons = new Div();

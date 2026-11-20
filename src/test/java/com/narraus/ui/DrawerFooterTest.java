@@ -36,11 +36,10 @@ class DrawerFooterTest {
             window.navigate(FeedView.class);
 
             Button logout = window.find(Button.class).all().stream()
-                    .filter(b -> "Kirjaudu ulos".equals(b.getText())).findFirst().orElseThrow();
+                    .filter(b -> b.hasClassName("drawer-logout")).findFirst().orElseThrow();
             var parent = logout.getParent().orElseThrow();
 
-            assertInstanceOf(VerticalLayout.class, parent, "Nimi ja nappi ovat päällekkäin, eivät vierekkäin");
-            assertFalse(parent instanceof HorizontalLayout);
+            assertTrue(parent.getElement().getClassList().contains("drawer-footer"));
             List<com.vaadin.flow.component.Component> children = parent.getChildren().toList();
             assertEquals(2, children.size());
             Span name = assertInstanceOf(Span.class, children.get(0), "Nimi on ensimmäisenä, ylhäällä");
@@ -70,7 +69,7 @@ class DrawerFooterTest {
             window.navigate(FeedView.class);
 
             Button logout = window.find(Button.class).all().stream()
-                    .filter(b -> "Kirjaudu ulos".equals(b.getText())).findFirst().orElseThrow();
+                    .filter(b -> b.hasClassName("drawer-logout")).findFirst().orElseThrow();
             assertTrue(logout.hasClassName("drawer-logout"));
             var footer = logout.getParent().orElseThrow();
             assertTrue(footer.getElement().getClassList().contains("drawer-footer"));
@@ -109,7 +108,6 @@ class DrawerFooterTest {
         String rules = css.substring(lift);
         assertTrue(rules.contains("@media (max-width: 700px)"));
         assertTrue(rules.contains(".drawer-footer {") && rules.contains("padding-bottom: max(40px"), "Kirjaudu ulos ylemmäs");
-        assertTrue(rules.contains(".chat-view {") && rules.contains("env(safe-area-inset-bottom)"), "Viestikenttä ylemmäs");
         assertTrue(rules.contains(".event-compose {"), "Kilpailun kirjoitusnappi ylemmäs");
     }
 }

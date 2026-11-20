@@ -18,11 +18,13 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.PermitAll;
+import org.vaadin.firitin.appframework.MenuItem;
 
 @Route(value = "users", layout = MainLayout.class)
 @RouteAlias(value = "people", layout = MainLayout.class) // vanha osoite toimii edelleen
 @PageTitle("Käyttäjät | Narraus")
 @PermitAll
+@MenuItem(title = "Käyttäjät", icon = VaadinIcon.USERS, order = 20)
 public class UsersView extends VerticalLayout {
 
     private final UserService users;

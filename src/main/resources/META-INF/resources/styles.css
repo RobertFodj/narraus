@@ -59,7 +59,6 @@ vaadin-app-layout[overlay][drawer-opened] .island {
  */
 .chat-view {
   box-sizing: border-box;
-  height: calc(100dvh - var(--vaadin-app-layout-navbar-offset-size, 4rem));
   min-height: 0;
   overflow: hidden;
 }
@@ -459,17 +458,10 @@ a.event-card:hover {
   align-self: flex-start;
 }
 
-/*
- * Puhelin: alareunan hallintaelementit nostetaan hieman ylös, jotta iPhonen pyöristetty kulma,
- * kotipalkki ja Safarin alapalkki eivät peitä niitä (nimi, Kirjaudu ulos, Kirjoita viesti).
- */
+/* Puhelin: alareunan hallintaelementit nostetaan hieman ylös (iPhonen kulma ja alapalkki) */
 @media (max-width: 700px) {
   .drawer-footer {
     padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 24px));
-  }
-
-  .chat-view {
-    padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 8px));
   }
 
   .event-compose {
@@ -477,117 +469,24 @@ a.event-card:hover {
   }
 }
 
-/* ---------- Puhelin pystyssä: kelluva alapalkki ---------- */
+/* ---------- Alapalkin merkit (Viritinin MobileMainLayout rakentaa palkin) ---------- */
+.mobile-bottom-nav-item {
+  position: relative;
+}
 
-.bottom-bar,
-.account-button {
+.mobile-bottom-nav-item .nav-badge {
+  position: absolute;
+  top: 2px;
+  left: calc(50% + 6px);
+}
+
+/* Avoin keskustelu on koko ruudun: alapalkki pois, jotta viestikenttä ja näppäimistö saavat tilan */
+body:has(.chat-view.chat-open) .mobile-bottom-nav {
   display: none;
 }
 
-@media (max-width: 700px) and (orientation: portrait) {
-  /* Sivupaneelin tilalla alapalkki; nimi ja Kirjaudu ulos ovat ylhäällä tilipainikkeessa */
-  vaadin-drawer-toggle {
-    display: none;
-  }
-
-  .account-button {
-    display: inline-flex;
-    margin-inline-start: auto;
-    margin-inline-end: 8px;
-    max-width: 45vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-weight: 600;
-  }
-
-  /* Saari: irti kaikista reunoista, pyöristetty kuten puhelimen kulmat */
-  .bottom-bar {
-    position: fixed;
-    z-index: 20;
-    left: 12px;
-    right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    display: flex;
-    justify-content: space-between;
-    gap: 2px;
-    padding: 6px;
-    border-radius: 32px;
-    background: color-mix(in srgb, var(--vaadin-background-color, #fff) 82%, transparent);
-    -webkit-backdrop-filter: blur(18px) saturate(1.6);
-    backdrop-filter: blur(18px) saturate(1.6);
-    border: 1px solid var(--vaadin-border-color-secondary, rgba(0, 0, 0, 0.08));
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
-  }
-
-  .bottom-tab {
-    flex: 1 1 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 6px 2px 5px;
-    border-radius: 24px;
-    color: var(--vaadin-text-color-secondary, #6b7280);
-    text-decoration: none;
-    font-size: 10px;
-    font-weight: 500;
-  }
-
-  .bottom-tab[aria-current='page'] {
-    color: var(--aura-accent-color, var(--vaadin-text-color, #1f4fd6));
-    background: color-mix(in srgb, currentColor 12%, transparent);
-  }
-
-  .bottom-tab-icon {
-    position: relative;
-    display: inline-flex;
-  }
-
-  .bottom-tab-icon vaadin-icon {
-    width: 20px;
-    height: 20px;
-  }
-
-  .bottom-tab-icon .nav-badge {
-    position: absolute;
-    top: -6px;
-    right: -10px;
-  }
-
-  .bottom-tab-label {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  /* Tila palkille, jotta sisältö ei jää sen alle */
-  :root {
-    --bottom-bar-space: 5.5rem;
-  }
-
-  vaadin-app-layout::part(content) {
-    padding-bottom: var(--bottom-bar-space);
-  }
-
-  .chat-view {
-    height: calc(100dvh - var(--vaadin-app-layout-navbar-offset-size, 4rem) - var(--bottom-bar-space));
-  }
-
-  /* Avoin keskustelu on koko ruudun: alapalkki pois, jotta viestikenttä ja näppäimistö saavat tilan */
-  body:has(.chat-view.chat-open) .bottom-bar {
-    display: none;
-  }
-
-  body:has(.chat-view.chat-open) {
-    --bottom-bar-space: 0rem;
-  }
-
-  .drawer-footer {
-    padding-bottom: 12px;
-  }
+body:has(.chat-view.chat-open) vaadin-app-layout .mobile-content {
+  padding-bottom: 0;
 }
 
 /* ---------- Narraus-viesti ponnahtaa näytölle saarena ---------- */
@@ -660,4 +559,8 @@ a.event-card:hover {
 .back-button {
   align-self: flex-start;
   flex: 0 0 auto;
+}
+
+.profile-logout {
+  align-self: flex-start;
 }

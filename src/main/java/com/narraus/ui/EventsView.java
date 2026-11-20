@@ -20,6 +20,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.PermitAll;
+import org.vaadin.firitin.appframework.MenuItem;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 @Route(value = "events", layout = MainLayout.class)
 @PageTitle("Kilpailut | Narraus")
 @PermitAll
+@MenuItem(title = "Kilpailut", icon = VaadinIcon.TROPHY, order = 40)
 public class EventsView extends VerticalLayout {
 
     private final EventService events;

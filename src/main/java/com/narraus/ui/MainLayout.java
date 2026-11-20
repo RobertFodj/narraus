@@ -13,28 +13,23 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.router.RouterLink;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import org.vaadin.firitin.appframework.BasicNavigationItem;
+import org.vaadin.firitin.appframework.MobileMainLayout;
+import org.vaadin.firitin.appframework.NavigationItem;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.sidenav.SideNav;
-import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.AfterNavigationEvent;
-import com.vaadin.flow.router.AfterNavigationObserver;
 import com.vaadin.flow.component.UIDetachedException;
 import com.vaadin.flow.shared.Registration;
 import jakarta.annotation.security.PermitAll;
@@ -42,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @PermitAll
-public class MainLayout extends AppLayout implements AfterNavigationObserver {
+public class MainLayout extends MobileMainLayout {
 
     private final UnreadService unread;
     private final UserService users;
@@ -60,10 +55,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     private final Span feedBadge = badge();
     private final Span chatBadge = badge();
-    private final Span feedBarBadge = badge();
-    private final Span chatBarBadge = badge();
-    /** Alapalkin linkit reitin osoitteen mukaan; aktiivinen korostetaan sivunvaihdossa. */
-    private final Map<String, RouterLink> barLinks = new LinkedHashMap<>();
+    /** Pienellä näytöllä alapalkin kuvakkeiden päällä olevat merkit (palkki rakennetaan valikon mukaan). */
+    private Span feedBarBadge = badge();
+    private Span chatBarBadge = badge();
     private final List<Registration> registrations = new ArrayList<>();
 
     public MainLayout(CurrentUser currentUser, UnreadService unread, ChatBroadcaster chatBroadcaster,
@@ -77,40 +71,10 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         this.feedBroadcaster = feedBroadcaster;
         this.me = currentUser.get();
 
-        H1 title = new H1("🎣 Narraus");
-        title.getStyle().set("font-size", "1.25rem").set("margin", "0");
-        // Oma nimi ylhäällä oikealla nappina, joka avaa Kirjaudu ulos -valinnan; näkyy vain puhelimella pystyssä, jossa sivupaneelia ei ole
-        Button account = new Button(me.getDisplayName());
-        account.addThemeVariants(ButtonVariant.TERTIARY);
-        account.addClassName("account-button");
-        account.addClassName("account-name");
-        ContextMenu accountMenu = new ContextMenu(account);
-        accountMenu.setOpenOnClick(true);
-        accountMenu.addItem("Kirjaudu ulos", e -> currentUser.logout());
-        addToNavbar(new DrawerToggle(), title, account);
-
-        SideNav nav = new SideNav();
-        SideNavItem feed = new SideNavItem("Saaliit", FeedView.class, VaadinIcon.PICTURE.create());
-        feed.setSuffixComponent(feedBadge);
-        SideNavItem chat = new SideNavItem("Keskustelut", ChatView.class, VaadinIcon.CHAT.create());
-        chat.setSuffixComponent(chatBadge);
-        nav.addItem(feed);
-        nav.addItem(new SideNavItem("Käyttäjät", UsersView.class, VaadinIcon.USERS.create()));
-        nav.addItem(chat);
-        nav.addItem(new SideNavItem("Kilpailut", EventsView.class, VaadinIcon.TROPHY.create()));
-        nav.addItem(new SideNavItem("Oma tili", ProfileView.class, VaadinIcon.USER.create()));
-        addToDrawer(nav);
-
-        // Puhelin pystyssä: kelluva alapalkki ("saari") samoilla valikoilla kuin sivupaneelissa
-        Nav bar = new Nav();
-        bar.addClassName("bottom-bar");
-        bar.getElement().setAttribute("aria-label", "Päävalikko");
-        addBarLink(bar, "Saaliit", FeedView.class, VaadinIcon.PICTURE, feedBarBadge);
-        addBarLink(bar, "Käyttäjät", UsersView.class, VaadinIcon.USERS, null);
-        addBarLink(bar, "Viestit", ChatView.class, VaadinIcon.CHAT, chatBarBadge);
-        addBarLink(bar, "Kilpailut", EventsView.class, VaadinIcon.TROPHY, null);
-        addBarLink(bar, "Oma tili", ProfileView.class, VaadinIcon.USER, null);
-        getElement().appendChild(bar.getElement());
+        // Valikko syntyy Viritinin MobileMainLayoutin avulla näkymien @MenuItem-merkinnöistä:
+        // puhelimella pystyssä alapalkki, muuten sivupaneeli
+        setBottomNavLabelsVisible(true);
+        setBodyScrolling(false);
 
         // Alatunniste kiinni paneelin alareunassa: nimi ja Kirjaudu ulos valikon rivien kaltaisena rivinä
         // (mitat ja värit ovat tyyleissä: .drawer-footer, .drawer-user, .drawer-logout)
@@ -119,28 +83,46 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         logout.addClassName("drawer-logout");
         Span userName = new Span(me.getDisplayName());
         userName.addClassName("drawer-user");
-        VerticalLayout footer = new VerticalLayout(userName, logout);
+        var footer = getDrawerFooter();
         footer.addClassName("drawer-footer");
-        footer.setPadding(false);
-        footer.setSpacing(false);
-        addToDrawer(footer);
+        footer.add(userName, logout);
 
         refreshBadges();
     }
 
-    private void addBarLink(Nav bar, String label, Class<? extends com.vaadin.flow.component.Component> view,
-                            VaadinIcon icon, Span badge) {
-        RouterLink link = new RouterLink(view);
-        link.addClassName("bottom-tab");
-        link.getElement().setAttribute("aria-label", label);
-        var iconBox = new Span(icon.create());
-        iconBox.addClassName("bottom-tab-icon");
-        if (badge != null) iconBox.add(badge);
-        Span text = new Span(label);
-        text.addClassName("bottom-tab-label");
-        link.add(iconBox, text);
-        bar.add(link);
-        barLinks.put(RouteConfiguration.forApplicationScope().getUrl(view), link);
+    @Override
+    protected Object getDrawerHeader() {
+        return "🎣 Narraus";
+    }
+
+    /** Vain päävalikon näkymät näytetään valikoissa; alisivut (kartta, ylläpito, kilpailu jne.) avataan muualta. */
+    @Override
+    protected boolean checkAccess(NavigationItem item) {
+        Class<?> target = item.getNavigationTarget();
+        return target == FeedView.class || target == UsersView.class || target == ChatView.class
+                || target == EventsView.class || target == ProfileView.class;
+    }
+
+    /** Valikon (uudelleen)rakennuksen jälkeen merkit liitetään sivupaneelin riveihin ja alapalkin kuvakkeisiin. */
+    @Override
+    protected void onMenuBuilt(List<NavigationItem> topLevelItems) {
+        super.onMenuBuilt(topLevelItems);
+        feedBarBadge = badge();
+        chatBarBadge = badge();
+        for (NavigationItem item : topLevelItems) {
+            if (item instanceof BasicNavigationItem nav) {
+                if (item.getNavigationTarget() == FeedView.class) nav.setSuffixComponent(feedBadge);
+                if (item.getNavigationTarget() == ChatView.class) nav.setSuffixComponent(chatBadge);
+            }
+        }
+        getChildren().filter(c -> c.hasClassName("mobile-bottom-nav")).findFirst()
+                .ifPresent(bar -> bar.getChildren().forEach(link -> {
+                    String href = link.getElement().getAttribute("href");
+                    if (href == null) return;
+                    if (href.isEmpty() || href.equals("/")) link.getElement().appendChild(feedBarBadge.getElement());
+                    else if (href.equals("chat")) link.getElement().appendChild(chatBarBadge.getElement());
+                }));
+        refreshBadges();
     }
 
     private static Span badge() {
@@ -175,12 +157,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
-        String path = event.getLocation().getFirstSegment();
-        barLinks.forEach((url, link) -> {
-            boolean active = url.equals(path) || (!url.isEmpty() && path.startsWith(url + "/"));
-            if (active) link.getElement().setAttribute("aria-current", "page");
-            else link.getElement().removeAttribute("aria-current");
-        });
+        super.afterNavigation(event);
         refreshBadges();
     }
 

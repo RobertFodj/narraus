@@ -9,6 +9,7 @@
     <properties>
         <java.version>25</java.version>
         <vaadin.version>25.4.0-beta2</vaadin.version>
+        <viritin.version>3.9.1</viritin.version>
     </properties>
 
     <parent>
@@ -31,6 +32,11 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>in.virit</groupId>
+            <artifactId>viritin</artifactId>
+            <version>${viritin.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-core</artifactId>

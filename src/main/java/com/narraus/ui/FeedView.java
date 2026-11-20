@@ -25,11 +25,13 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.component.UIDetachedException;
 import com.vaadin.flow.shared.Registration;
 import jakarta.annotation.security.PermitAll;
+import org.vaadin.firitin.appframework.MenuItem;
 import java.util.List;
 
 @Route(value = "", layout = MainLayout.class)
 @PageTitle("Saaliit | Narraus")
 @PermitAll
+@MenuItem(title = "Saaliit", icon = VaadinIcon.PICTURE, order = 10)
 public class FeedView extends VerticalLayout {
 
     private final PostService posts;

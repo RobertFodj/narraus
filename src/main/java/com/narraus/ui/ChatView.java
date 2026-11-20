@@ -41,6 +41,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import jakarta.annotation.security.PermitAll;
+import org.vaadin.firitin.appframework.MenuItem;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -50,6 +51,7 @@ import java.util.Set;
 @Route(value = "chat", layout = MainLayout.class)
 @PageTitle("Keskustelut | Narraus")
 @PermitAll
+@MenuItem(title = "Keskustelut", icon = VaadinIcon.CHAT, order = 30)
 public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
 
     private final ChatService chats;
