@@ -168,7 +168,7 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
             info.add(description);
         }
         for (String line : List.of("🏆 " + EventFormat.goal(ev), "🕒 " + EventFormat.interval(ev),
-                "👥 " + events.participantCount(ev) + " osallistujaa", "📏 " + scoringRule(ev))) {
+                "👥 " + events.participantCount(ev) + " osallistujaa")) {
             Div d = new Div(new Span(line));
             d.addClassName("event-line");
             info.add(d);
@@ -177,16 +177,6 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
         photoRule.addClassNames("event-line", "event-photo-rule");
         info.add(photoRule);
         return info;
-    }
-
-    private static String scoringRule(CompetitionEvent ev) {
-        if (ev.getMetric() == EventMetric.COUNT) return "Voittaa se, jolla on eniten kaloja.";
-        if (ev.getCountedFish() != 1) return "Tulos on " + ev.getCountedFish() + " parhaan kalan summa.";
-        return switch (ev.getMetric()) {
-            case WEIGHT -> "Voittaa se, jolla on painavin kala.";
-            case LENGTH -> "Voittaa se, jolla on pisin kala.";
-            default -> "Voittaa se, jolla on suurin ympärysmitta.";
-        };
     }
 
     private HorizontalLayout actions(CompetitionEvent ev, EventStatus status) {

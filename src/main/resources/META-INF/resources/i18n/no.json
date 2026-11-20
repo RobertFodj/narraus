@@ -140,7 +140,6 @@
  "Keskustelu": "Samtale",
  "Kilpailu on poistettu": "Konkurransen er slettet",
  "📷 Vain kuvalliset saaliit lasketaan mukaan kilpailuun.": "📷 Bare fangster med bilde teller med i konkurransen.",
- "Voittaa se, jolla on eniten kaloja.": "Den som har flest fisk, vinner.",
  "Poistu kilpailusta": "Forlat konkurransen",
  "Liity kilpailuun": "Bli med i konkurransen",
  "✔ Osallistuit tähän kilpailuun": "✔ Du deltok i denne konkurransen",
@@ -271,7 +270,6 @@
  "{0} jäsentä: {1}": "{0} medlemmer: {1}",
  "Ryhmä": "Gruppe",
  "Näytä aiemmat viestit ({0})": "Vis tidligere meldinger ({0})",
- "Tulos on {0} parhaan kalan summa.": "Resultatet er summen av de {0} beste fiskene.",
  "Kilpailu \"{0}\", sen osallistujat, tarkistukset ja keskustelu poistetaan pysyvästi. Saaliit säilyvät.": "Konkurransen \"{0}\", deltakerne, kontrollene og samtalen slettes permanent. Fangstene beholdes.",
  "Osallistujia yhteensä: {0}": "Totalt antall deltakere: {0}",
  "🚫 Poistetut kalat ({0})": "🚫 Fjernede fisk ({0})",
@@ -309,8 +307,5 @@
  "Käännökset (valinnainen)": "Oversettelser (valgfritt)",
  "Jos käännöstä ei ole, näytetään suomenkielinen teksti.": "Hvis oversettelse mangler, vises den finske teksten.",
  "Nimi ({0})": "Navn ({0})",
- "Kuvaus ({0})": "Beskrivelse ({0})",
- "Voittaa se, jolla on painavin kala.": "Den som har den tyngste fisken, vinner.",
- "Voittaa se, jolla on pisin kala.": "Den som har den lengste fisken, vinner.",
- "Voittaa se, jolla on suurin ympärysmitta.": "Den som har den største omkretsen, vinner."
+ "Kuvaus ({0})": "Beskrivelse ({0})"
 }
