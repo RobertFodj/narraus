@@ -108,7 +108,7 @@ public class AdminView extends VerticalLayout implements BeforeEnterObserver {
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        add(header, summary, filter, grid);
+        add(new BackButton(ProfileView.class), header, summary, filter, grid);
     }
 
     static String eventNames(List<CompetitionEvent> events) {

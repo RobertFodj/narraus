@@ -99,10 +99,7 @@ public class UserProfileView extends VerticalLayout implements HasUrlParameter<L
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setWidthFull();
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        Button back = new Button("Käyttäjät", VaadinIcon.ARROW_LEFT.create(),
-                e -> UI.getCurrent().navigate(UsersView.class));
-        back.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
-        back.addClassName("profile-back");
+        BackButton back = new BackButton(UsersView.class);
         add(back, header, counts);
         if (adminPolicy.isAdmin(me)) add(adminInfo(me, user));
 

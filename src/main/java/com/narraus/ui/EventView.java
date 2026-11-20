@@ -136,10 +136,7 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
         removeAll();
         EventStatus status = ev.status();
 
-        Button back = new Button("Kilpailut", VaadinIcon.ARROW_LEFT.create(),
-                e -> UI.getCurrent().navigate(EventsView.class));
-        back.addThemeVariants(ButtonVariant.TERTIARY, ButtonVariant.SMALL);
-        back.addClassName("event-back");
+        BackButton back = new BackButton(EventsView.class);
         H2 title = new H2(ev.getName());
         title.addClassName("event-title");
         Span badge = new Span(status.label());

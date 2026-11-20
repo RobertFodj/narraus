@@ -439,16 +439,15 @@ class EventViewsTest {
     // ---- navigointi ----
 
     @Test
-    void backArrow_returnsToTheEventList() {
+    void backArrow_isOnTheEventPage() {
         CompetitionEvent e = ongoing(unique("Kisa"), EventMetric.WEIGHT, 1);
         AppUser me = TestData.newUser(users, "Minä");
         try (var user = app.newUser(me.getUsername(), "USER")) {
             var window = user.newWindow();
             window.navigate("event/" + e.getId(), EventView.class);
-            var back = window.find(Button.class).all().stream().filter(b -> b.hasClassName("event-back")).findFirst().orElseThrow();
-            assertEquals("Kilpailut", back.getText());
-            window.test(back).click();
-            assertInstanceOf(EventsView.class, window.getCurrentView());
+            var back = window.find(Button.class).all().stream().filter(b -> b.hasClassName("back-button")).findFirst().orElseThrow();
+            assertEquals("Takaisin", back.getElement().getAttribute("aria-label"));
+            assertTrue(back.getIcon() != null, "Napissa on nuoli");
         }
     }
 

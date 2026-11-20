@@ -107,4 +107,15 @@ class RegisterViewTest {
             assertFalse(users.find(username).isPresent());
         }
     }
+
+    @Test
+    void registerPage_hasBackArrow() {
+        try (var anonymous = app.newUser()) {
+            var window = anonymous.newWindow();
+            window.navigate(RegisterView.class);
+
+            assertTrue(window.find(com.vaadin.flow.component.button.Button.class).all().stream()
+                    .anyMatch(b -> b.hasClassName("back-button") && b.getIcon() != null));
+        }
+    }
 }

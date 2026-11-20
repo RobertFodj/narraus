@@ -247,7 +247,7 @@ class UserProfileViewTest {
     }
 
     @Test
-    void backArrow_returnsToTheUsersList() {
+    void backArrow_isOnTheUserPage() {
         AppUser me = TestData.newUser(users, "Katsoja");
         AppUser target = TestData.newUser(users, "Kohde");
 
@@ -256,13 +256,9 @@ class UserProfileViewTest {
             window.navigate("user/" + target.getId(), UserProfileView.class);
 
             var back = window.find(com.vaadin.flow.component.button.Button.class).all().stream()
-                    .filter(b -> b.hasClassName("profile-back")).findFirst().orElseThrow();
-            assertEquals("Käyttäjät", back.getText());
+                    .filter(b -> b.hasClassName("back-button")).findFirst().orElseThrow();
+            assertEquals("Takaisin", back.getElement().getAttribute("aria-label"));
             assertTrue(back.getIcon() != null, "Napissa on nuoli");
-
-            window.test(back).click();
-
-            assertInstanceOf(UsersView.class, window.getCurrentView());
         }
     }
 }

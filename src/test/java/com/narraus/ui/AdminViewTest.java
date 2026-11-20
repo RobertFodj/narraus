@@ -296,4 +296,17 @@ class AdminViewTest {
                     .anyMatch(s -> s.getText().startsWith("Viimeksi käytetty")), "Tavallinen ei näe");
         }
     }
+
+    @Test
+    void adminPage_hasBackArrow() {
+        admin();
+
+        try (var adminUser = app.newUser("robbe", "USER")) {
+            var window = adminUser.newWindow();
+            window.navigate(AdminView.class);
+
+            assertTrue(window.find(com.vaadin.flow.component.button.Button.class).all().stream()
+                    .anyMatch(b -> b.hasClassName("back-button") && b.getIcon() != null));
+        }
+    }
 }

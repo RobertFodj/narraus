@@ -655,3 +655,9 @@ a.event-card:hover {
 .profile-panel {
   padding-top: 4px;
 }
+
+/* Paluunuoli alisivuilla: vasempaan reunaan, ei venytetä koko leveydelle */
+.back-button {
+  align-self: flex-start;
+  flex: 0 0 auto;
+}
