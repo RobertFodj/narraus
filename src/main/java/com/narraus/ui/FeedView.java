@@ -46,9 +46,13 @@ public class FeedView extends VerticalLayout implements BeforeEnterObserver {
     /** "Kartalla"-välilehden sisältö; kartta rakennetaan vasta kun välilehti valitaan. */
     private final Div mapBox = new Div();
     private final MapConfig mapConfig;
+    private final GeocodingService geocoder;
+    private final com.narraus.domain.AdminPolicy adminPolicy;
 
     public FeedView(PostService posts, CurrentUser currentUser, UnreadService unread, FeedBroadcaster broadcaster,
-                    MapConfig mapConfig, GeocodingService geocoder) {
+                    MapConfig mapConfig, GeocodingService geocoder, com.narraus.domain.AdminPolicy adminPolicy) {
+        this.geocoder = geocoder;
+        this.adminPolicy = adminPolicy;
         this.posts = posts;
         this.currentUser = currentUser;
         this.unread = unread;
@@ -182,7 +186,12 @@ public class FeedView extends VerticalLayout implements BeforeEnterObserver {
 
     private void addCard(CatchPost p, AppUser me) {
         shownIds.add(p.getId());
-        list.add(new CatchCard(posts, p, me, this::showOnMap));
+        CatchCard card = new CatchCard(posts, p, me, this::showOnMap);
+        // Ylläpitäjä voi muokata ja poistaa kenen tahansa julkaisun
+        if (adminPolicy.isAdmin(me)) {
+            card.add(PostActions.row(posts, currentUser, mapConfig, geocoder, p, this::refresh));
+        }
+        list.add(card);
     }
 
     /** Julkaisun paikan painaminen: Kartalla-välilehti avautuu ja zoomaa saaliin paikalle. */

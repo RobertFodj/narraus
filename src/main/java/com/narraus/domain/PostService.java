@@ -45,10 +45,12 @@ public class PostService {
     private final FeedBroadcaster feedBroadcaster;
     private final ApplicationEventPublisher events;
     private final Path uploadDir;
+    private final AdminPolicy adminPolicy;
 
     PostService(PostRepository posts, LikeRepository likes, CommentRepository comments, EventFishReviewRepository eventReviews, FollowRepository follows,
-                FeedBroadcaster feedBroadcaster, ApplicationEventPublisher events,
+                FeedBroadcaster feedBroadcaster, ApplicationEventPublisher events, AdminPolicy adminPolicy,
                 @Value("${narraus.upload-dir}") String uploadDir) throws IOException {
+        this.adminPolicy = adminPolicy;
         this.events = events;
         this.feedBroadcaster = feedBroadcaster;
         this.posts = posts;
@@ -139,7 +141,7 @@ public class PostService {
         return saved;
     }
 
-    /** Poistaa oman julkaisun tykkäyksineen ja kuvineen. Vain tekijä saa poistaa (SecurityException muille). */
+    /** Poistaa julkaisun tykkäyksineen ja kuvineen. Vain tekijä tai ylläpitäjä saa poistaa (SecurityException muille). */
     @Transactional
     public void delete(Long postId, AppUser requester) {
         CatchPost post = ownedBy(postId, requester);
@@ -155,7 +157,8 @@ public class PostService {
     private CatchPost ownedBy(Long postId, AppUser requester) {
         CatchPost post = posts.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Julkaisua ei löytynyt"));
-        if (requester == null || !post.getAuthor().equals(requester)) {
+        // Tekijä hallitsee omaa julkaisuaan; ylläpitäjä saa muokata ja poistaa kenen tahansa julkaisun
+        if (requester == null || !(post.getAuthor().equals(requester) || adminPolicy.isAdmin(requester))) {
             throw new SecurityException("Ei oikeutta");
         }
         return post;

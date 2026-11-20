@@ -243,4 +243,44 @@ class PostManagementTest {
         assertEquals(b.getId(), reload(me, b.getId()).getId());
         assertEquals(1, posts.postCount(me));
     }
+
+    // ---- ylläpitäjä (robbe) saa muokata ja poistaa kenen tahansa julkaisun ----
+
+    private AppUser admin() {
+        return users.find("robbe").orElseGet(() -> users.register("robbe", "Robbe Ylläpitäjä", "salasana123"));
+    }
+
+    @Test
+    void admin_mayEditAnyonesPost_andTheAuthorStaysTheSame() {
+        AppUser owner = newUser("Omistaja");
+        CatchPost post = newPost(owner);
+
+        posts.update(post.getId(), admin(), "Kuha", 2.0, 60.0, null, "Moderoitu paikka", "Siivottu kuvaus", null, null,
+                false, 61.5, 25.5);
+
+        CatchPost edited = reload(owner, post.getId());
+        assertEquals("Kuha", edited.getSpecies());
+        assertEquals("Siivottu kuvaus", edited.getDescription());
+        assertEquals(owner.getId(), edited.getAuthor().getId(), "Tekijä ei muutu");
+    }
+
+    @Test
+    void admin_mayDeleteAnyonesPost() {
+        AppUser owner = newUser("Omistaja");
+        CatchPost post = newPost(owner);
+
+        posts.delete(post.getId(), admin());
+
+        assertEquals(null, reload(owner, post.getId()));
+    }
+
+    @Test
+    void ordinaryUsers_stillCannotTouchOthersPosts() {
+        AppUser owner = newUser("Omistaja");
+        AppUser other = newUser("Toinen");
+        CatchPost post = newPost(owner);
+
+        assertThrows(SecurityException.class, () -> posts.delete(post.getId(), other));
+        assertTrue(reload(owner, post.getId()) != null);
+    }
 }

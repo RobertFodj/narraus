@@ -44,9 +44,14 @@ public class UserProfileView extends VerticalLayout implements HasUrlParameter<L
     private final CurrentUser currentUser;
     private final AdminPolicy adminPolicy;
     private final AdminService adminService;
+    private final MapConfig mapConfig;
+    private final com.narraus.domain.GeocodingService geocoder;
 
     public UserProfileView(UserService users, PostService posts, ChatService chats, CurrentUser currentUser,
-                           AdminPolicy adminPolicy, AdminService adminService) {
+                           AdminPolicy adminPolicy, AdminService adminService, MapConfig mapConfig,
+                           com.narraus.domain.GeocodingService geocoder) {
+        this.mapConfig = mapConfig;
+        this.geocoder = geocoder;
         this.adminPolicy = adminPolicy;
         this.adminService = adminService;
         this.users = users;
@@ -70,8 +75,10 @@ public class UserProfileView extends VerticalLayout implements HasUrlParameter<L
             event.rerouteToError(NotFoundException.class, "Käyttäjää ei löytynyt");
             return;
         }
-        AppUser user = found.get();
+        render(me, found.get());
+    }
 
+    private void render(AppUser me, AppUser user) {
         removeAll();
         Span counts = new Span();
         Button follow = new Button();
@@ -108,7 +115,12 @@ public class UserProfileView extends VerticalLayout implements HasUrlParameter<L
         if (theirs.isEmpty()) {
             add(new Paragraph("Ei vielä julkaisuja."));
         }
-        theirs.forEach(p -> add(new CatchCard(posts, p, me)));
+        boolean admin = adminPolicy.isAdmin(me);
+        theirs.forEach(p -> {
+            add(new CatchCard(posts, p, me));
+            // Ylläpitäjä voi muokata ja poistaa käyttäjän julkaisuja
+            if (admin) add(PostActions.row(posts, currentUser, mapConfig, geocoder, p, () -> render(me, user)));
+        });
     }
 
     /** Ylläpitäjälle näkyvät lisätiedot: tunnus, kilpailut ja laitetyyppi. Muille tätä ei näytetä. */

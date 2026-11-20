@@ -187,4 +187,63 @@ class PostLinksTest {
             assertEquals(60.98, map.map().getCenter().y, 1e-9);
         }
     }
+
+    // ---- ylläpitäjän moderointi: muokkaa/poista kenen tahansa julkaisu ----
+
+    private static boolean hasPostButtons(BrowserlessUIContext window, Long postId) {
+        var card = window.find(VerticalLayout.class).all().stream()
+                .filter(c -> ("post-" + postId).equals(c.getId().orElse(""))).findFirst().orElseThrow();
+        return card.getChildren().anyMatch(c -> c.getElement().getClassList().contains("post-actions"));
+    }
+
+    @Test
+    void admin_seesEditAndDeleteOnOthersPostsInTheFeed_ordinaryUsersDoNot() {
+        AppUser owner = TestData.newUser(users, "Omistaja");
+        CatchPost post = posts.create(owner, "Hauki", null, null, null, null, null, null, null);
+        AppUser stranger = TestData.newUser(users, "Vierailija");
+        admin();
+
+        try (var adminUser = app.newUser("robbe", "USER"); var normal = app.newUser(stranger.getUsername(), "USER")) {
+            var adminWindow = adminUser.newWindow();
+            adminWindow.navigate(FeedView.class);
+            assertTrue(hasPostButtons(adminWindow, post.getId()), "Ylläpitäjä näkee Muokkaa/Poista");
+
+            var normalWindow = normal.newWindow();
+            normalWindow.navigate(FeedView.class);
+            assertFalse(hasPostButtons(normalWindow, post.getId()), "Tavallinen käyttäjä ei näe");
+        }
+    }
+
+    @Test
+    void admin_canDeleteAUsersPostFromTheUsersPage() {
+        AppUser owner = TestData.newUser(users, "Omistaja");
+        CatchPost post = posts.create(owner, "Hauki", null, null, null, null, null, null, null);
+        admin();
+
+        try (var adminUser = app.newUser("robbe", "USER")) {
+            var window = adminUser.newWindow();
+            window.navigate("user/" + owner.getId(), UserProfileView.class);
+
+            window.findButton().withText("Poista").click();
+            window.test(window.find(com.vaadin.flow.component.confirmdialog.ConfirmDialog.class).single()).confirm();
+
+            assertTrue(posts.byAuthor(owner).stream().noneMatch(p -> p.getId().equals(post.getId())),
+                    "Julkaisu poistettu");
+        }
+    }
+
+    @Test
+    void ordinaryUser_seesNoPostButtonsOnAnotherUsersPage() {
+        AppUser owner = TestData.newUser(users, "Omistaja");
+        posts.create(owner, "Hauki", null, null, null, null, null, null, null);
+        AppUser viewer = TestData.newUser(users, "Katsoja");
+
+        try (var user = app.newUser(viewer.getUsername(), "USER")) {
+            var window = user.newWindow();
+            window.navigate("user/" + owner.getId(), UserProfileView.class);
+
+            assertTrue(window.find(com.vaadin.flow.component.button.Button.class).all().stream()
+                    .noneMatch(b -> "Poista".equals(b.getText()) || "Muokkaa".equals(b.getText())));
+        }
+    }
 }

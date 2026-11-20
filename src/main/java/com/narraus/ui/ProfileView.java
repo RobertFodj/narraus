@@ -185,30 +185,10 @@ public class ProfileView extends VerticalLayout {
     }
 
     private VerticalLayout postWithActions(CatchPost p, AppUser me) {
-        Button edit = new Button("Muokkaa", VaadinIcon.EDIT.create(),
-                e -> new CatchDialog(posts, currentUser, mapConfig, geocoder, p, this::refresh).open());
-        edit.addThemeVariants(ButtonVariant.SMALL);
-        Button delete = new Button("Poista", VaadinIcon.TRASH.create(), e -> confirmDelete(p, me));
-        delete.addThemeVariants(ButtonVariant.SMALL, ButtonVariant.ERROR);
-
-        VerticalLayout box = new VerticalLayout(new CatchCard(posts, p, me), new HorizontalLayout(edit, delete));
+        VerticalLayout box = new VerticalLayout(new CatchCard(posts, p, me),
+                PostActions.row(posts, currentUser, mapConfig, geocoder, p, this::refresh));
         box.setPadding(false);
         return box;
-    }
-
-    private void confirmDelete(CatchPost p, AppUser me) {
-        ConfirmDialog confirm = new ConfirmDialog();
-        confirm.setHeader("Poistetaanko julkaisu?");
-        confirm.setText("Julkaisu \"" + p.getSpecies() + "\" poistetaan pysyvästi tykkäyksineen ja kuvineen.");
-        confirm.setCancelable(true);
-        confirm.setCancelText("Peruuta");
-        confirm.setConfirmText("Poista");
-        confirm.setConfirmButtonTheme("error primary");
-        confirm.addConfirmListener(e -> {
-            posts.delete(p.getId(), me);
-            refresh();
-        });
-        confirm.open();
     }
 
     private VerticalLayout deleteAccountSection() {
