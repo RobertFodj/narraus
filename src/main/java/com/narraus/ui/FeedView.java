@@ -58,9 +58,8 @@ public class FeedView extends VerticalLayout {
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         header.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // Kaksi saalista vierekkäin; kapealla näytöllä yksi sarake
-        list.getStyle().set("display", "grid").set("gap", "1em")
-                .set("grid-template-columns", "repeat(auto-fit, minmax(min(100%, 16em), 1fr))");
+        // Kaksi saalista vierekkäin myös puhelimella (ks. .feed-list styles.css:ssä)
+        list.addClassName("feed-list");
         tabs.addSelectedChangeListener(e -> refresh());
         // Otsikko, nappi ja välilehdet ovat "saari", joka pysyy paikallaan kun saaliit vierivät sen alla
         VerticalLayout bar = new VerticalLayout(header, tabs);

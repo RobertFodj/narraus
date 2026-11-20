@@ -135,7 +135,7 @@ class CommentsAndLayoutTest {
     }
 
     @Test
-    void feed_isAGridThatFitsTwoCardsSideBySide() {
+    void feed_isAGridThatFitsTwoCardsSideBySide() throws Exception {
         AppUser me = TestData.newUser(users, "Minä");
         posts.create(me, TestData.unique("Hauki"), null, null, null, null, null, null, null);
         posts.create(me, TestData.unique("Ahven"), null, null, null, null, null, null, null);
@@ -144,9 +144,13 @@ class CommentsAndLayoutTest {
             var window = user.newWindow();
             FeedView feed = window.navigate(FeedView.class);
 
-            Div grid = window.find(Div.class).all().stream()
-                    .filter(d -> "grid".equals(d.getStyle().get("display"))).findFirst().orElseThrow();
-            assertTrue(grid.getStyle().get("grid-template-columns").contains("minmax(min(100%, 16em)"));
+            assertTrue(window.find(Div.class).all().stream().anyMatch(d -> d.hasClassName("feed-list")));
+            String css;
+            try (var in = CommentsAndLayoutTest.class.getResourceAsStream("/META-INF/resources/styles.css")) {
+                css = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            }
+            assertTrue(css.contains("minmax(min(100%, 16em), 1fr)"), "Leveällä näytöllä auto-fit-ruudukko");
+            assertTrue(css.contains("repeat(2, minmax(0, 1fr))"), "Puhelimella aina kaksi saraketta");
             assertEquals("44em", feed.getMaxWidth(), "Leveys riittää kahdelle 16 em kortille vierekkäin, mutta ei kolmelle");
         }
     }
