@@ -17,4 +17,5 @@ public class Follow {
     public Follow(AppUser follower, AppUser followed) { this.follower = follower; this.followed = followed; }
 
     public AppUser getFollowed() { return followed; }
+    public AppUser getFollower() { return follower; }
 }

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /** Välittää "keskustelussa X tapahtui jotain" -tiedon avoimille selainistunnoille. */
 @Component
@@ -16,7 +18,18 @@ public class ChatBroadcaster {
         return () -> listeners.remove(listener);
     }
 
+    /** Lähettää tiedon vasta transaktion commitin jälkeen, jotta kuuntelijat näkevät uuden viestin. */
     void broadcast(Long conversationId) {
-        listeners.forEach(l -> l.accept(conversationId));
+        Runnable send = () -> listeners.forEach(l -> l.accept(conversationId));
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    send.run();
+                }
+            });
+        } else {
+            send.run();
+        }
     }
 }

@@ -16,6 +16,8 @@ public class ChatMessage {
     private String text;
     @Column(nullable = false)
     private Instant sentAt = Instant.now();
+    /** Milloin viestiä on viimeksi muokattu; null, jos ei ole muokattu. */
+    private Instant editedAt;
 
     protected ChatMessage() {}
     public ChatMessage(Conversation conversation, AppUser sender, String text) {
@@ -24,7 +26,16 @@ public class ChatMessage {
         this.text = text;
     }
 
+    public Long getId() { return id; }
+    public Conversation getConversation() { return conversation; }
     public AppUser getSender() { return sender; }
     public String getText() { return text; }
     public Instant getSentAt() { return sentAt; }
+    public Instant getEditedAt() { return editedAt; }
+    public boolean isEdited() { return editedAt != null; }
+
+    public void edit(String newText) {
+        this.text = newText;
+        this.editedAt = Instant.now();
+    }
 }

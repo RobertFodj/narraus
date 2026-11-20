@@ -27,6 +27,7 @@ public class Conversation {
 
     public Long getId() { return id; }
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     public boolean isGroupChat() { return groupChat; }
     public Instant getLastActivity() { return lastActivity; }
     public void setLastActivity(Instant t) { this.lastActivity = t; }

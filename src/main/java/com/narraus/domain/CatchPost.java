@@ -19,8 +19,14 @@ public class CatchPost {
     @Column(length = 2000)
     private String description;
     private String photoFile;
+    /** Sijainti kartalla (WGS84), valinnainen. */
+    private Double latitude;
+    private Double longitude;
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
+    /** Milloin kala on pyydetty. Oletuksena julkaisuhetki, mutta käyttäjä voi muuttaa sen. */
+    @Column(nullable = false)
+    private Instant caughtAt = Instant.now();
 
     protected CatchPost() {}
 
@@ -46,6 +52,30 @@ public class CatchPost {
     public String getDescription() { return description; }
     public String getPhotoFile() { return photoFile; }
     public Instant getCreatedAt() { return createdAt; }
+    public Instant getCaughtAt() { return caughtAt; }
+    public void setCaughtAt(Instant caughtAt) { this.caughtAt = caughtAt; }
+    public Double getLatitude() { return latitude; }
+    public Double getLongitude() { return longitude; }
+    public boolean hasCoordinates() { return latitude != null && longitude != null; }
+
+    /** Päivittää julkaisun muokattavat tiedot (tekijä ja luontiaika eivät muutu). */
+    public void edit(String species, Double weightKg, Double lengthCm, Double girthCm,
+                     String location, String description) {
+        this.species = species;
+        this.weightKg = weightKg;
+        this.lengthCm = lengthCm;
+        this.girthCm = girthCm;
+        this.location = location;
+        this.description = description;
+    }
+
+    public void setPhotoFile(String photoFile) { this.photoFile = photoFile; }
+
+    public void setCoordinates(Double latitude, Double longitude) {
+        boolean both = latitude != null && longitude != null;
+        this.latitude = both ? latitude : null;
+        this.longitude = both ? longitude : null;
+    }
 
     @Override public boolean equals(Object o) {
         return o instanceof CatchPost p && id != null && id.equals(p.id);
