@@ -12,5 +12,6 @@ public interface PushSender {
         FAILED
     }
 
-    Result send(String endpoint, String p256dh, String auth, String title, String body);
+    /** icon on ilmoituksen kuvake (osoite) tai null, jolloin selain käyttää oletusta. */
+    Result send(String endpoint, String p256dh, String auth, String title, String body, String icon);
 }

@@ -14,4 +14,7 @@ public final class PushEvents {
     /** Julkaistiin uusi saalis. recipientIds on tekijän seuraajat. */
     public record PostPublished(Long postId, Long authorId, String authorName, String species,
                                 Set<Long> recipientIds) {}
+
+    /** Ylläpitäjä lähetti Narraus-viestin. Ilmoituksen lähettäjänä on "Narraus" ja kuvakkeena Narrauksen logo. */
+    public record SystemMessage(Set<Long> recipientIds, String text) {}
 }

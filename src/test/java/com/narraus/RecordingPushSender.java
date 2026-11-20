@@ -9,14 +9,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /** Testien lähetin: ei kutsu oikeaa push-palvelua, vaan tallentaa lähetetyt viestit. */
 public class RecordingPushSender implements PushSender {
 
-    public record Sent(String endpoint, String title, String body) {}
+    public record Sent(String endpoint, String title, String body, String icon) {}
 
     private final List<Sent> sent = new CopyOnWriteArrayList<>();
     private final Map<String, Result> results = new ConcurrentHashMap<>();
 
     @Override
-    public Result send(String endpoint, String p256dh, String auth, String title, String body) {
-        sent.add(new Sent(endpoint, title, body));
+    public Result send(String endpoint, String p256dh, String auth, String title, String body, String icon) {
+        sent.add(new Sent(endpoint, title, body, icon));
         return results.getOrDefault(endpoint, Result.OK);
     }
 

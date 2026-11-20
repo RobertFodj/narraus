@@ -13,9 +13,11 @@ public class UnreadService {
     private final ConversationRepository conversations;
     private final ConversationReadRepository reads;
     private final UserRepository users;
+    private final SystemMessageRepository systemMessages;
 
     UnreadService(PostRepository posts, MessageRepository messages, ConversationRepository conversations,
-                  ConversationReadRepository reads, UserRepository users) {
+                  ConversationReadRepository reads, UserRepository users, SystemMessageRepository systemMessages) {
+        this.systemMessages = systemMessages;
         this.posts = posts;
         this.messages = messages;
         this.conversations = conversations;
@@ -42,7 +44,7 @@ public class UnreadService {
         for (Conversation c : conversations.findForUser(me)) {
             total += unreadIn(c, me);
         }
-        return total;
+        return total + systemMessages.countByRecipientAndReadAtIsNull(me); // Narraus-viestit lasketaan mukaan
     }
 
     @Transactional(readOnly = true)

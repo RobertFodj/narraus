@@ -1,10 +1,14 @@
 package com.narraus.ui;
 
+import com.narraus.domain.AdminPolicy;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.ChatBroadcaster;
 import com.narraus.domain.ChatMessage;
 import com.narraus.domain.ChatService;
 import com.narraus.domain.Conversation;
+import com.narraus.domain.SystemMessage;
+import com.narraus.domain.SystemMessageBroadcaster;
+import com.narraus.domain.SystemMessageService;
 import com.narraus.domain.UnreadService;
 import com.narraus.domain.UserService;
 import com.vaadin.flow.component.AttachEvent;
@@ -13,7 +17,9 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.UIDetachedException;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
@@ -50,6 +56,9 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
     private final UserService users;
     private final ChatBroadcaster broadcaster;
     private final UnreadService unread;
+    private final SystemMessageService systemMessages;
+    private final SystemMessageBroadcaster systemBroadcaster;
+    private final AdminPolicy adminPolicy;
     private final AppUser me;
 
     private final VerticalLayout convList = new VerticalLayout();
@@ -75,6 +84,11 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
         refreshConversations();
     });
     private Registration registration;
+    private Registration systemRegistration;
+    /** Narrauksen viestit ovat auki (oikealla puolella lista Narrauksen viesteistä, ei vastattavissa). */
+    private boolean systemOpen;
+    /** Narrauksen logo viestien käyttäjäkuvana (PWA-kuvake, julkinen). */
+    static final String NARRAUS_LOGO = "/icons/icon-192x192.png";
 
     /**
      * iOS avaa näppäimistön vain, jos kenttään kohdistetaan suoraan napautuksen aikana (ei palvelinkutsun jälkeen).
@@ -115,7 +129,11 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
             .withZone(ZoneId.systemDefault());
 
     public ChatView(ChatService chats, UserService users, ChatBroadcaster broadcaster, UnreadService unread,
-                    CurrentUser currentUser) {
+                    CurrentUser currentUser, SystemMessageService systemMessages,
+                    SystemMessageBroadcaster systemBroadcaster, AdminPolicy adminPolicy) {
+        this.systemMessages = systemMessages;
+        this.systemBroadcaster = systemBroadcaster;
+        this.adminPolicy = adminPolicy;
         this.chats = chats;
         this.users = users;
         this.broadcaster = broadcaster;
@@ -137,6 +155,14 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
         listHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         listHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         VerticalLayout left = new VerticalLayout(listHeader, convList);
+        if (adminPolicy.isAdmin(me)) {
+            // Narraus-viestit lähetetään omasta napista, eivät tavallisten viestien kautta
+            Button sendSystem = new Button("Lähetä Narraus-viesti", VaadinIcon.MEGAPHONE.create(),
+                    e -> openSystemSendDialog());
+            sendSystem.addThemeVariants(ButtonVariant.SMALL);
+            sendSystem.addClassName("chat-send-system");
+            left.addComponentAtIndex(1, sendSystem);
+        }
         left.addClassName("chat-list");
         left.setWidth("16em");
         left.setPadding(false);
@@ -215,12 +241,27 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
                 // selain on jo suljettu
             }
         });
+        systemRegistration = systemBroadcaster.register(userId -> {
+            if (!me.getId().equals(userId)) return;
+            try {
+                ui.access(() -> {
+                    if (systemOpen) {
+                        markSystemRead(); // auki oleva Narraus-viesti on heti luettu
+                        refreshSystemMessages();
+                    }
+                    refreshConversations();
+                });
+            } catch (UIDetachedException ignored) {
+                // selain on jo suljettu
+            }
+        });
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         detachEvent.getUI().getPage().executeJs(FOCUS_PROXY_CLEANUP_JS);
         if (registration != null) registration.remove();
+        if (systemRegistration != null) systemRegistration.remove();
     }
 
     private void refreshConversations() {
@@ -228,19 +269,37 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
         List<Conversation> list = chats.conversationsOf(me);
         if (list.isEmpty()) {
             convList.add(new Span("Ei keskusteluja. Aloita viesti Käyttäjät-sivulta."));
-            return;
+        } else {
+            // Ryhmät ja yksityisviestit omissa osioissaan, jotta näkee heti kumpi on kumpi
+            List<Conversation> groups = list.stream().filter(Conversation::isGroupChat).toList();
+            List<Conversation> directs = list.stream().filter(c -> !c.isGroupChat()).toList();
+            if (!groups.isEmpty()) {
+                convList.add(sectionTitle("Ryhmät", groups.size()));
+                groups.forEach(c -> convList.add(conversationItem(c)));
+            }
+            if (!directs.isEmpty()) {
+                convList.add(sectionTitle("Yksityisviestit", directs.size()));
+                directs.forEach(c -> convList.add(conversationItem(c)));
+            }
         }
-        // Ryhmät ja yksityisviestit omissa osioissaan, jotta näkee heti kumpi on kumpi
-        List<Conversation> groups = list.stream().filter(Conversation::isGroupChat).toList();
-        List<Conversation> directs = list.stream().filter(c -> !c.isGroupChat()).toList();
-        if (!groups.isEmpty()) {
-            convList.add(sectionTitle("Ryhmät", groups.size()));
-            groups.forEach(c -> convList.add(conversationItem(c)));
-        }
-        if (!directs.isEmpty()) {
-            convList.add(sectionTitle("Yksityisviestit", directs.size()));
-            directs.forEach(c -> convList.add(conversationItem(c)));
-        }
+        addSystemSection();
+    }
+
+    /** Narrauksen viestit omalla otsikollaan, erillään keskusteluista. Näkyy vain, jos viestejä on tullut. */
+    private void addSystemSection() {
+        if (!systemMessages.hasMessages(me)) return;
+        Span heading = new Span("Narrauksen viestit");
+        heading.addClassName("chat-section");
+        heading.addClassName("chat-section-system");
+        convList.add(heading);
+        long unreadCount = systemMessages.unreadCount(me);
+        Button entry = new Button(SystemMessageService.SENDER_NAME + (unreadCount > 0 ? " (" + unreadCount + ")" : ""),
+                VaadinIcon.BELL.create(), e -> openSystem());
+        entry.addClassName("chat-item-system");
+        entry.addThemeVariants(systemOpen ? ButtonVariant.PRIMARY : ButtonVariant.TERTIARY);
+        entry.setWidthFull();
+        entry.getStyle().set("justify-content", "flex-start");
+        convList.add(entry);
     }
 
     private static Span sectionTitle(String text, int count) {
@@ -278,6 +337,7 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
 
     private void open(Conversation c) {
         if (c == null) return;
+        systemOpen = false;
         if (!c.equals(current)) visibleMessages = MESSAGE_PAGE;
         current = c;
         showHeading(c);
@@ -301,12 +361,103 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
 
     private void leaveCurrent() {
         current = null;
+        systemOpen = false;
         visibleMessages = MESSAGE_PAGE;
         loadEarlier.setVisible(false);
         showHeading(null);
         input.setEnabled(false);
         messageList.setItems();
         updateActions();
+    }
+
+    /** Avaa Narrauksen viestit: lähettäjänä "Narraus" ja logo; viesteihin ei voi vastata. */
+    private void openSystem() {
+        current = null;
+        systemOpen = true;
+        visibleMessages = MESSAGE_PAGE;
+        loadEarlier.setVisible(false);
+        title.setText(SystemMessageService.SENDER_NAME);
+        subtitle.setVisible(true);
+        subtitle.setText("Viestit Narrauksen ylläpidolta · et voi vastata");
+        input.setEnabled(false);
+        updateActions();
+        markSystemRead();
+        refreshConversations();
+        refreshSystemMessages();
+    }
+
+    private void refreshSystemMessages() {
+        List<SystemMessage> shown = systemMessages.messagesFor(me);
+        messageList.setItems(shown.stream().map(m -> {
+            MessageListItem item = new MessageListItem(m.getText(), m.getCreatedAt(), SystemMessageService.SENDER_NAME,
+                    NARRAUS_LOGO);
+            item.setUserColorIndex(0);
+            return item;
+        }).toList());
+    }
+
+    private void markSystemRead() {
+        if (systemMessages.markAllRead(me)) {
+            getUI().ifPresent(UnreadChanged::fire);
+        }
+    }
+
+    /** Ylläpitäjän lähetysikkuna: kaikille tai valituille käyttäjille. */
+    private void openSystemSendDialog() {
+        Dialog d = new Dialog();
+        d.setHeaderTitle("Lähetä Narraus-viesti");
+        d.setWidth("min(34em, 95vw)");
+
+        Checkbox toAll = new Checkbox("Kaikille käyttäjille");
+        toAll.setValue(true);
+        MultiSelectComboBox<AppUser> recipients = new MultiSelectComboBox<>("Vastaanottajat");
+        recipients.setItems(
+                query -> users.searchOthers(query.getFilter().orElse(""), me, query.getOffset(), query.getLimit())
+                        .stream(),
+                query -> users.countOthers(query.getFilter().orElse(""), me));
+        recipients.setItemLabelGenerator(AppUser::getDisplayName);
+        recipients.setWidthFull();
+        recipients.setEnabled(false);
+        toAll.addValueChangeListener(e -> recipients.setEnabled(!e.getValue()));
+
+        TextArea text = new TextArea("Viesti");
+        text.setMaxLength(SystemMessageService.MAX_LENGTH);
+        text.setMinRows(3);
+        text.setWidthFull();
+        text.setHelperText("Vastaanottaja saa ilmoituksen ja viestin lähettäjältä Narraus. Viestiin ei voi vastata.");
+        d.add(new VerticalLayout(toAll, recipients, text));
+
+        Button send = new Button("Lähetä", VaadinIcon.PAPERPLANE.create(), e -> {
+            if (toAll.getValue()) {
+                ConfirmDialog confirm = new ConfirmDialog();
+                confirm.setHeader("Lähetetäänkö kaikille?");
+                confirm.setText("Viesti lähetetään " + users.countOthers("", me) + " käyttäjälle.");
+                confirm.setCancelable(true);
+                confirm.setCancelText("Peruuta");
+                confirm.setConfirmText("Lähetä");
+                confirm.addConfirmListener(c -> sendSystem(d, true, java.util.Set.of(), text.getValue()));
+                confirm.open();
+            } else {
+                sendSystem(d, false, recipients.getValue(), text.getValue());
+            }
+        });
+        send.addThemeVariants(ButtonVariant.PRIMARY);
+        d.getFooter().add(new Button("Peruuta", e -> d.close()), send);
+        d.open();
+    }
+
+    private void sendSystem(Dialog dialog, boolean toAll, Set<AppUser> chosen, String text) {
+        try {
+            int count = toAll ? systemMessages.sendToAll(me, text) : systemMessages.send(me, chosen, text);
+            dialog.close();
+            Notification.show("Viesti lähetetty " + count + (count == 1 ? " käyttäjälle" : " käyttäjälle"))
+                    .addThemeVariants(NotificationVariant.SUCCESS);
+        } catch (SecurityException ex) {
+            Notification.show("Vain ylläpitäjä voi lähettää Narraus-viestejä").addThemeVariants(NotificationVariant.ERROR);
+            dialog.close();
+        } catch (IllegalArgumentException ex) {
+            Notification.show(ex.getMessage()).addThemeVariants(NotificationVariant.ERROR);
+        }
     }
 
     /**
@@ -355,7 +506,9 @@ public class ChatView extends HorizontalLayout implements BeforeEnterObserver {
 
     private void updateActions() {
         // Kapealla näytöllä näytetään joko lista tai avoin keskustelu (CSS käyttää tätä luokkaa)
-        setClassName("chat-open", current != null);
+        setClassName("chat-open", current != null || systemOpen);
+        // Narrauksen viesteihin ei voi vastata: kirjoituskenttä piilotetaan tyyleillä (kenttä pysyy pois käytöstä)
+        setClassName("chat-readonly", systemOpen);
         editGroup.setVisible(current != null && current.isGroupChat());
         editMessages.setVisible(current != null);
         composeBar.setEnabled(current != null);

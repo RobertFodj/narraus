@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -118,4 +119,15 @@ interface EventMessageRepository extends JpaRepository<EventMessage, Long> {
     List<EventMessage> findTop100ByEventOrderBySentAtDesc(CompetitionEvent event);
     void deleteByEvent(CompetitionEvent event);
     void deleteBySender(AppUser sender);
+}
+
+interface SystemMessageRepository extends JpaRepository<SystemMessage, Long> {
+    List<SystemMessage> findTop200ByRecipientOrderByCreatedAtDesc(AppUser recipient);
+    long countByRecipient(AppUser recipient);
+    long countByRecipientAndReadAtIsNull(AppUser recipient);
+    void deleteByRecipient(AppUser recipient);
+
+    @Modifying
+    @Query("update SystemMessage m set m.readAt = :now where m.recipient = :user and m.readAt is null")
+    int markAllRead(@Param("user") AppUser user, @Param("now") Instant now);
 }

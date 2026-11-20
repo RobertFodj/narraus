@@ -14,6 +14,9 @@ class VapidPushSender implements PushSender {
 
     private static final Logger LOG = Logger.getLogger(VapidPushSender.class.getName());
 
+    /** Ilmoituksen lisäasetukset (body ja icon), joiden muoto on selaimen showNotification-asetukset. */
+    record Options(String body, String icon) implements java.io.Serializable {}
+
     private final PushService push;
 
     VapidPushSender(PushService push) {
@@ -21,11 +24,14 @@ class VapidPushSender implements PushSender {
     }
 
     @Override
-    public Result send(String endpoint, String p256dh, String auth, String title, String body) {
+    public Result send(String endpoint, String p256dh, String auth, String title, String body, String icon) {
         if (!push.isEnabled()) return Result.FAILED;
         try {
+            WebPushMessage message = icon == null
+                    ? new WebPushMessage(title, body)
+                    : new WebPushMessage(title, new Options(body, icon));
             push.webPush().sendNotification(new WebPushSubscription(endpoint, new WebPushKeys(p256dh, auth)),
-                    new WebPushMessage(title, body));
+                    message);
             return Result.OK;
         } catch (WebPushException e) {
             if (isGone(e)) return Result.GONE;

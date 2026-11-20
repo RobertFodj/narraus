@@ -4,6 +4,7 @@ import com.narraus.domain.AdminPolicy;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.ChatBroadcaster;
 import com.narraus.domain.FeedBroadcaster;
+import com.narraus.domain.SystemMessageBroadcaster;
 import com.narraus.domain.UnreadService;
 import com.narraus.domain.UserService;
 import com.vaadin.flow.component.AttachEvent;
@@ -36,6 +37,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private final UserService users;
     private final ChatBroadcaster chatBroadcaster;
     private final FeedBroadcaster feedBroadcaster;
+    private final SystemMessageBroadcaster systemBroadcaster;
     private final AppUser me;
 
     /** Asennettu sovellus (PWA) avautuu omassa ikkunassaan: display-mode standalone (iOS: navigator.standalone). */
@@ -48,7 +50,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private final List<Registration> registrations = new ArrayList<>();
 
     public MainLayout(CurrentUser currentUser, UnreadService unread, ChatBroadcaster chatBroadcaster,
-                      FeedBroadcaster feedBroadcaster, UserService users, AdminPolicy adminPolicy) {
+                      FeedBroadcaster feedBroadcaster, UserService users, AdminPolicy adminPolicy,
+                      SystemMessageBroadcaster systemBroadcaster) {
+        this.systemBroadcaster = systemBroadcaster;
         this.users = users;
         this.unread = unread;
         this.chatBroadcaster = chatBroadcaster;
@@ -128,6 +132,9 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         UI ui = attachEvent.getUI();
         registrations.add(chatBroadcaster.register(id -> access(ui)));
         registrations.add(feedBroadcaster.register(id -> access(ui)));
+        registrations.add(systemBroadcaster.register(userId -> {
+            if (me.getId().equals(userId)) access(ui); // Narraus-viesti tuli minulle
+        }));
         registrations.add(ComponentUtil.addListener(ui, UnreadChanged.class, e -> refreshBadges()));
         refreshBadges();
         // Kirjataan, käytetäänkö sovellusta asennettuna sovelluksena (PWA) vai selaimessa (ylläpitäjä näkee tämän)

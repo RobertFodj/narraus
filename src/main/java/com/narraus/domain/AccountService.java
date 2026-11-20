@@ -21,10 +21,13 @@ public class AccountService {
     private final PushSubscriptionRepository pushSubscriptions;
     private final PasswordEncoder encoder;
     private final PersistentTokenRepository loginTokens;
+    private final SystemMessageRepository systemMessages;
 
     AccountService(UserRepository users, PostRepository posts, PostService postService, ChatService chats,
                    LikeRepository likes, CommentRepository comments, EventService eventService, AdminPolicy admin, FollowRepository follows, PushSubscriptionRepository pushSubscriptions,
-                   PasswordEncoder encoder, PersistentTokenRepository loginTokens) {
+                   PasswordEncoder encoder, PersistentTokenRepository loginTokens,
+                   SystemMessageRepository systemMessages) {
+        this.systemMessages = systemMessages;
         this.loginTokens = loginTokens;
         this.users = users;
         this.posts = posts;
@@ -64,6 +67,7 @@ public class AccountService {
         follows.deleteByFollower(user);
         follows.deleteByFollowed(user);
         pushSubscriptions.deleteByUser(user);
+        systemMessages.deleteByRecipient(user); // Narraus-viestit
         chats.removeUser(user);
         loginTokens.removeUserTokens(user.getUsername()); // "pysy kirjautuneena" -tunnisteet kumoutuvat
         users.delete(user);

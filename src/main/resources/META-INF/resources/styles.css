@@ -422,3 +422,9 @@ a.event-card:hover {
   color: var(--vaadin-text-color-secondary);
   --vaadin-button-text-color: var(--vaadin-text-color-secondary);
 }
+
+/* Narrauksen viestit: vain luettavissa, joten viestikenttä ja puhelimen kirjoituspalkki piilotetaan */
+.chat-view.chat-readonly vaadin-message-input,
+.chat-view.chat-readonly .chat-compose-bar {
+  display: none;
+}
