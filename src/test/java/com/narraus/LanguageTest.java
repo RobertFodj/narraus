@@ -110,4 +110,20 @@ class LanguageTest {
             assertTrue(js.contains("narrausLang"));
         }
     }
+
+    @Test
+    void translatorKeepsTheIconInFrontOfTranslatedText_forCompetitionLines() throws Exception {
+        try (InputStream in = LanguageTest.class.getResourceAsStream("/META-INF/resources/narraus-i18n.js")) {
+            String js = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            assertTrue(js.contains("var iconic ="), "Kuvakkeella alkavat rivit (🏆 Pisin kala) käännetään kuvake säilyttäen");
+        }
+        for (String code : List.of("sv", "no", "en")) {
+            var dict = dictionary(code);
+            for (String key : List.of("Suurin paino", "Pisin kala", "Suurin ympärysmitta", "Eniten kaloja",
+                    "Voittaa se, jolla on painavin kala.", "Voittaa se, jolla on pisin kala.",
+                    "Voittaa se, jolla on suurin ympärysmitta.", "Voittaa se, jolla on eniten kaloja.")) {
+                assertTrue(dict.containsKey(key), code + " puuttuu: " + key);
+            }
+        }
+    }
 }

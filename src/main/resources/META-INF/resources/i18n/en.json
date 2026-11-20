@@ -254,9 +254,6 @@
  "Voit vaihtaa näyttönimesi, käyttäjätunnuksesi ja salasanasi. Muut käyttäjät näkevät vain näyttönimesi.": "You can change your display name, username and password. Other users only see your display name.",
  "Tilin poisto on pysyvä: julkaisusi, viestisi, seuraamisesi ja ilmoituslaitteesi poistetaan, eikä sitä voi perua.": "Deleting an account is permanent: your posts, messages, follows and notification devices are deleted, and it cannot be undone.",
  "Jätä uudet salasanakentät tyhjiksi, jos et halua vaihtaa salasanaa. Tunnuksen tai salasanan vaihto vaatii nykyisen salasanan.": "Leave the new password fields empty if you don't want to change your password. Changing your username or password requires your current password.",
- "suurin ympärysmitta": "thickest",
- "painavin": "heaviest",
- "pisin": "longest",
  "Viesti on liian pitkä (enintään {0} merkkiä)": "Message is too long (max {0} characters)",
  "Paino {0} kg": "Weight {0} kg",
  "Pituus {0} cm": "Length {0} cm",
@@ -274,7 +271,6 @@
  "{0} jäsentä: {1}": "{0} members: {1}",
  "Ryhmä": "Group",
  "Näytä aiemmat viestit ({0})": "Show earlier messages ({0})",
- "Voittaa se, jolla on {0} kala.": "The one with the {0} fish wins.",
  "Tulos on {0} parhaan kalan summa.": "The result is the sum of the {0} best fish.",
  "Kilpailu \"{0}\", sen osallistujat, tarkistukset ja keskustelu poistetaan pysyvästi. Saaliit säilyvät.": "The competition \"{0}\", its participants, checks and chat will be permanently deleted. The catches are kept.",
  "Osallistujia yhteensä: {0}": "Total participants: {0}",
@@ -313,5 +309,8 @@
  "Käännökset (valinnainen)": "Translations (optional)",
  "Jos käännöstä ei ole, näytetään suomenkielinen teksti.": "If a translation is missing, the Finnish text is shown.",
  "Nimi ({0})": "Name ({0})",
- "Kuvaus ({0})": "Description ({0})"
+ "Kuvaus ({0})": "Description ({0})",
+ "Voittaa se, jolla on painavin kala.": "The one with the heaviest fish wins.",
+ "Voittaa se, jolla on pisin kala.": "The one with the longest fish wins.",
+ "Voittaa se, jolla on suurin ympärysmitta.": "The one with the largest girth wins."
 }

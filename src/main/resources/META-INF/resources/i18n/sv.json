@@ -254,9 +254,6 @@
  "Voit vaihtaa näyttönimesi, käyttäjätunnuksesi ja salasanasi. Muut käyttäjät näkevät vain näyttönimesi.": "Du kan byta visningsnamn, användarnamn och lösenord. Andra användare ser bara ditt visningsnamn.",
  "Tilin poisto on pysyvä: julkaisusi, viestisi, seuraamisesi ja ilmoituslaitteesi poistetaan, eikä sitä voi perua.": "Att ta bort kontot är permanent: dina inlägg, meddelanden, följda användare och notisenheter tas bort, och det går inte att ångra.",
  "Jätä uudet salasanakentät tyhjiksi, jos et halua vaihtaa salasanaa. Tunnuksen tai salasanan vaihto vaatii nykyisen salasanan.": "Lämna fälten för nytt lösenord tomma om du inte vill byta lösenord. Byte av användarnamn eller lösenord kräver ditt nuvarande lösenord.",
- "suurin ympärysmitta": "tjockaste",
- "painavin": "tyngsta",
- "pisin": "längsta",
  "Viesti on liian pitkä (enintään {0} merkkiä)": "Meddelandet är för långt (högst {0} tecken)",
  "Paino {0} kg": "Vikt {0} kg",
  "Pituus {0} cm": "Längd {0} cm",
@@ -274,7 +271,6 @@
  "{0} jäsentä: {1}": "{0} medlemmar: {1}",
  "Ryhmä": "Grupp",
  "Näytä aiemmat viestit ({0})": "Visa tidigare meddelanden ({0})",
- "Voittaa se, jolla on {0} kala.": "Den som har den {0} fisken vinner.",
  "Tulos on {0} parhaan kalan summa.": "Resultatet är summan av de {0} bästa fiskarna.",
  "Kilpailu \"{0}\", sen osallistujat, tarkistukset ja keskustelu poistetaan pysyvästi. Saaliit säilyvät.": "Tävlingen \"{0}\", dess deltagare, kontroller och chatt tas bort permanent. Fångsterna finns kvar.",
  "Osallistujia yhteensä: {0}": "Totalt antal deltagare: {0}",
@@ -313,5 +309,8 @@
  "Käännökset (valinnainen)": "Översättningar (valfritt)",
  "Jos käännöstä ei ole, näytetään suomenkielinen teksti.": "Om det saknas en översättning visas den finska texten.",
  "Nimi ({0})": "Namn ({0})",
- "Kuvaus ({0})": "Beskrivning ({0})"
+ "Kuvaus ({0})": "Beskrivning ({0})",
+ "Voittaa se, jolla on painavin kala.": "Den som har den tyngsta fisken vinner.",
+ "Voittaa se, jolla on pisin kala.": "Den som har den längsta fisken vinner.",
+ "Voittaa se, jolla on suurin ympärysmitta.": "Den som har den största omkretsen vinner."
 }

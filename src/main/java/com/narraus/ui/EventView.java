@@ -181,14 +181,12 @@ public class EventView extends VerticalLayout implements HasUrlParameter<Long> {
 
     private static String scoringRule(CompetitionEvent ev) {
         if (ev.getMetric() == EventMetric.COUNT) return "Voittaa se, jolla on eniten kaloja.";
-        String what = switch (ev.getMetric()) {
-            case WEIGHT -> "painavin";
-            case LENGTH -> "pisin";
-            default -> "suurin ympärysmitta";
+        if (ev.getCountedFish() != 1) return "Tulos on " + ev.getCountedFish() + " parhaan kalan summa.";
+        return switch (ev.getMetric()) {
+            case WEIGHT -> "Voittaa se, jolla on painavin kala.";
+            case LENGTH -> "Voittaa se, jolla on pisin kala.";
+            default -> "Voittaa se, jolla on suurin ympärysmitta.";
         };
-        return ev.getCountedFish() == 1
-                ? "Voittaa se, jolla on " + what + " kala."
-                : "Tulos on " + ev.getCountedFish() + " parhaan kalan summa.";
     }
 
     private HorizontalLayout actions(CompetitionEvent ev, EventStatus status) {

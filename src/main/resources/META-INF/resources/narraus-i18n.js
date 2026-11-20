@@ -92,6 +92,13 @@
       var head = translateCore(counted[1]);
       if (head != null) return head + ' (' + counted[2] + ')';
     }
+
+    // Kuvake tekstin edessä: "🏆 Pisin kala", "📏 Voittaa se, jolla on ..." (kuvake säilyy, teksti käännetään)
+    var iconic = /^([^\p{L}\p{N}]+\s+)(\S[\s\S]*)$/u.exec(core);
+    if (iconic) {
+      var rest = translateCore(iconic[2]);
+      if (rest != null) return iconic[1] + rest;
+    }
     return null;
   }
 
