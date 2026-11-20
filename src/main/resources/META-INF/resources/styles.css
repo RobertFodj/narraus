@@ -485,6 +485,11 @@ a.event-card:hover {
     display: inline-flex;
     margin-inline-start: auto;
     margin-inline-end: 8px;
+    max-width: 45vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
   }
 
   /* Saari: irti kaikista reunoista, pyöristetty kuten puhelimen kulmat */

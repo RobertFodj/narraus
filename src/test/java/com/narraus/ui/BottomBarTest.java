@@ -81,7 +81,8 @@ class BottomBarTest {
             window.navigate(FeedView.class);
 
             assertTrue(window.find(com.vaadin.flow.component.button.Button.class).all().stream()
-                    .anyMatch(b -> b.hasClassName("account-button")));
+                    .anyMatch(b -> b.hasClassName("account-button") && me.getDisplayName().equals(b.getText())),
+                    "Tilipainikkeen teksti on käyttäjän nimi");
         }
     }
 

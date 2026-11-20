@@ -71,14 +71,13 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
         H1 title = new H1("🎣 Narraus");
         title.getStyle().set("font-size", "1.25rem").set("margin", "0");
-        // Oma tili (nimi + Kirjaudu ulos) ylhäällä oikealla; näkyy vain puhelimella pystyssä, jossa sivupaneelia ei ole
-        Button account = new Button(VaadinIcon.USER_CHECK.create());
+        // Oma nimi ylhäällä oikealla nappina, joka avaa Kirjaudu ulos -valinnan; näkyy vain puhelimella pystyssä, jossa sivupaneelia ei ole
+        Button account = new Button(me.getDisplayName());
         account.addThemeVariants(ButtonVariant.TERTIARY);
         account.addClassName("account-button");
-        account.getElement().setAttribute("aria-label", "Oma tili");
+        account.addClassName("account-name");
         ContextMenu accountMenu = new ContextMenu(account);
         accountMenu.setOpenOnClick(true);
-        accountMenu.addItem(me.getDisplayName()).setEnabled(false);
         accountMenu.addItem("Kirjaudu ulos", e -> currentUser.logout());
         addToNavbar(new DrawerToggle(), title, account);
 
