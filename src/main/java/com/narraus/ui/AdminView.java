@@ -68,7 +68,10 @@ public class AdminView extends VerticalLayout implements BeforeEnterObserver {
         grid.addColumn(UserOverview::username).setHeader("Tunnus").setKey("username").setAutoWidth(true);
         grid.addColumn(o -> eventNames(o.events())).setHeader("Kilpailut").setKey("events").setAutoWidth(true)
                 .setFlexGrow(1);
-        grid.addColumn(o -> clientText(o)).setHeader("Laite").setKey("client").setAutoWidth(true);
+        grid.addColumn(o -> lastUsedText(o)).setHeader("Viimeksi käytetty").setKey("last").setAutoWidth(true)
+                .setComparator(java.util.Comparator.comparing(UserOverview::lastUsedAt,
+                        java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder())));
+        grid.addColumn(o -> clientText(o)).setHeader("Laitteet").setKey("client").setAutoWidth(true);
         grid.addColumn(UserOverview::pushDevices).setHeader("Ilmoituslaitteita").setKey("push");
         grid.addColumn(UserOverview::posts).setHeader("Julkaisuja").setKey("posts");
         grid.setSizeFull();
@@ -99,5 +102,10 @@ public class AdminView extends VerticalLayout implements BeforeEnterObserver {
         if (o.usesApp() && o.usesWeb()) sb.append(", ");
         if (o.usesWeb()) sb.append("web ").append(TIME.format(o.webLastUsedAt()));
         return sb.append(")").toString();
+    }
+
+    /** Esim. "App 20.11.2026 10:05" (viimeisin käyttö), tai "–" jos tietoa ei ole. */
+    static String lastUsedText(UserOverview o) {
+        return o.lastClient() == null ? "–" : o.lastClient() + " " + TIME.format(o.lastUsedAt());
     }
 }

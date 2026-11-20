@@ -32,6 +32,21 @@ public class AdminService {
             return webLastUsedAt != null;
         }
 
+        /** Mitä käyttäjä on käyttänyt viimeisimpänä: "App" tai "Web", tai null, jos tietoa ei ole. Tasatilanteessa "App". */
+        public String lastClient() {
+            if (!usesApp() && !usesWeb()) return null;
+            if (!usesWeb()) return "App";
+            if (!usesApp()) return "Web";
+            return appLastUsedAt.isBefore(webLastUsedAt) ? "Web" : "App";
+        }
+
+        /** Viimeisimmän käytön ajankohta (app tai web, kumpi on uudempi), tai null. */
+        public Instant lastUsedAt() {
+            if (!usesApp()) return webLastUsedAt;
+            if (!usesWeb()) return appLastUsedAt;
+            return appLastUsedAt.isBefore(webLastUsedAt) ? webLastUsedAt : appLastUsedAt;
+        }
+
         /** "App", "Web", "App ja web" tai "Ei tietoa" (käyttäjä ei ole vielä avannut sovellusta tämän seurannan jälkeen). */
         public String clientLabel() {
             if (usesApp() && usesWeb()) return "App ja web";

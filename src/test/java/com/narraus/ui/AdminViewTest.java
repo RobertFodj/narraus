@@ -37,6 +37,8 @@ class AdminViewTest {
     private UserService users;
     @Autowired
     private EventService events;
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     private AppUser admin() {
         return users.find("robbe").orElseGet(() -> users.register("robbe", "Robbe Ylläpitäjä", "salasana123"));
@@ -208,6 +210,87 @@ class AdminViewTest {
             assertTrue(normalWindow.find(H3.class).all().stream().noneMatch(h -> "Ylläpitäjän tiedot".equals(h.getText())));
             assertFalse(normalWindow.find(Span.class).all().stream().anyMatch(s -> s.getText().startsWith("Tunnus:")),
                     "Tavallinen käyttäjä ei näe tunnusta eikä laitetyyppiä");
+        }
+    }
+
+    // ---- viimeksi käytetty ----
+
+    private void setUsage(AppUser user, Instant app, Instant web) {
+        jdbc.update("update app_user set app_last_used_at = ?, web_last_used_at = ? where id = ?",
+                app == null ? null : java.sql.Timestamp.from(app), web == null ? null : java.sql.Timestamp.from(web),
+                user.getId());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void adminPage_showsWhatEachUserUsedMostRecently() {
+        admin();
+        AppUser appUser = TestData.newUser(users, "AppUusin");
+        AppUser webUser = TestData.newUser(users, "WebUusin");
+        AppUser none = TestData.newUser(users, "Ei-tietoa");
+        Instant now = Instant.now();
+        setUsage(appUser, now.minus(Duration.ofMinutes(30)), now.minus(Duration.ofDays(1)));
+        setUsage(webUser, now.minus(Duration.ofDays(2)), now.minus(Duration.ofMinutes(10)));
+
+        try (var adminUser = app.newUser("robbe", "USER")) {
+            var window = adminUser.newWindow();
+            window.navigate(AdminView.class);
+
+            Grid<UserOverview> grid = window.find(Grid.class).single();
+            var items = rows(grid).getItems().stream().toList();
+            int last = grid.getColumns().indexOf(grid.getColumnByKey("last"));
+            var tester = window.test(grid);
+            String appText = tester.getCellText(rowOf(items, appUser), last);
+            String webText = tester.getCellText(rowOf(items, webUser), last);
+            String noneText = tester.getCellText(rowOf(items, none), last);
+
+            assertTrue(appText.startsWith("App "), "App oli viimeisin: " + appText);
+            assertTrue(webText.startsWith("Web "), "Web oli viimeisin: " + webText);
+            assertTrue(appText.matches("App \\d{1,2}\\.\\d{1,2}\\.\\d{4} \\d{2}:\\d{2}"),
+                    "Mukana on myös ajankohta: " + appText);
+            assertEquals("–", noneText);
+            assertEquals("Viimeksi käytetty", grid.getColumnByKey("last").getHeaderText());
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void adminPage_canBeSortedByLastUsed() {
+        admin();
+        try (var adminUser = app.newUser("robbe", "USER")) {
+            var window = adminUser.newWindow();
+            window.navigate(AdminView.class);
+
+            Grid<UserOverview> grid = window.find(Grid.class).single();
+
+            assertTrue(grid.getColumnByKey("last").isSortable(), "Viimeksi käytetty -sarakkeella voi järjestää");
+        }
+    }
+
+    private static int rowOf(java.util.List<UserOverview> items, AppUser user) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).user().equals(user)) return i;
+        }
+        throw new AssertionError("Käyttäjä ei ole listassa: " + user.getDisplayName());
+    }
+
+    @Test
+    void userPage_showsTheLastUsedClient_toTheAdminOnly() {
+        admin();
+        AppUser other = TestData.newUser(users, "Kohde");
+        AppUser normal = TestData.newUser(users, "Tavallinen");
+        setUsage(other, Instant.now().minus(Duration.ofDays(3)), Instant.now().minus(Duration.ofMinutes(20)));
+
+        try (var adminUser = app.newUser("robbe", "USER"); var normalUser = app.newUser(normal.getUsername(), "USER")) {
+            var adminWindow = adminUser.newWindow();
+            var normalWindow = normalUser.newWindow();
+            adminWindow.navigate("user/" + other.getId(), UserProfileView.class);
+            normalWindow.navigate("user/" + other.getId(), UserProfileView.class);
+
+            assertTrue(adminWindow.find(Span.class).all().stream()
+                    .anyMatch(s -> s.getText().startsWith("Viimeksi käytetty: Web ")), "Ylläpitäjä näkee viimeisimmän");
+            assertFalse(normalWindow.find(Span.class).all().stream()
+                    .anyMatch(s -> s.getText().startsWith("Viimeksi käytetty")), "Tavallinen ei näe");
         }
     }
 }

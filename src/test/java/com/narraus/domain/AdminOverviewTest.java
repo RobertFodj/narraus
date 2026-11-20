@@ -202,4 +202,71 @@ class AdminOverviewTest {
         assertEquals(2, o.pushDevices());
         assertEquals(1, o.posts());
     }
+
+    // ---- viimeksi käytetty ----
+
+    private void setUsage(AppUser user, Instant app, Instant web) {
+        jdbc.update("update app_user set app_last_used_at = ?, web_last_used_at = ? where id = ?",
+                app == null ? null : Timestamp.from(app), web == null ? null : Timestamp.from(web), user.getId());
+    }
+
+    @Test
+    void lastClient_isWhicheverWasUsedMostRecently() {
+        AppUser appNewer = newUser("AppUusin");
+        AppUser webNewer = newUser("WebUusin");
+        Instant now = Instant.now();
+        setUsage(appNewer, now.minus(Duration.ofHours(1)), now.minus(Duration.ofDays(2)));
+        setUsage(webNewer, now.minus(Duration.ofDays(3)), now.minus(Duration.ofMinutes(5)));
+
+        UserOverview a = overviewOf(appNewer);
+        UserOverview w = overviewOf(webNewer);
+
+        assertEquals("App", a.lastClient(), "App oli uudempi");
+        assertEquals(a.appLastUsedAt(), a.lastUsedAt());
+        assertEquals("Web", w.lastClient(), "Web oli uudempi");
+        assertEquals(w.webLastUsedAt(), w.lastUsedAt());
+    }
+
+    @Test
+    void lastClient_withOnlyOneClient_isThatClient_andNullWithNone() {
+        AppUser appOnly = newUser("VainApp");
+        AppUser webOnly = newUser("VainWeb");
+        AppUser none = newUser("Ei-kumpaakaan");
+        Instant stamp = Instant.now().minus(Duration.ofHours(2));
+        setUsage(appOnly, stamp, null);
+        setUsage(webOnly, null, stamp);
+
+        assertEquals("App", overviewOf(appOnly).lastClient());
+        assertEquals("Web", overviewOf(webOnly).lastClient());
+        assertNull(overviewOf(none).lastClient(), "Ei tietoa, jos kumpaakaan ei ole kirjattu");
+        assertNull(overviewOf(none).lastUsedAt());
+    }
+
+    @Test
+    void lastClient_whenBothAreEqual_isApp() {
+        AppUser me = newUser("Tasan");
+        Instant same = Instant.now().minus(Duration.ofHours(1));
+        setUsage(me, same, same);
+
+        assertEquals("App", overviewOf(me).lastClient());
+    }
+
+    @Test
+    void lastClient_followsTheUsersActualUse_overTime() {
+        AppUser me = newUser("Vaihtaja");
+        users.recordClient(me.getId(), false);
+        assertEquals("Web", overviewOf(me).lastClient());
+
+        // Käyttäjä asentaa sovelluksen ja alkaa käyttää sitä: app on nyt uusin
+        jdbc.update("update app_user set web_last_used_at = ? where id = ?",
+                Timestamp.from(Instant.now().minus(Duration.ofHours(3))), me.getId());
+        users.recordClient(me.getId(), true);
+        assertEquals("App", overviewOf(me).lastClient());
+
+        // Ja myöhemmin taas selaimessa
+        jdbc.update("update app_user set app_last_used_at = ?, web_last_used_at = ? where id = ?",
+                Timestamp.from(Instant.now().minus(Duration.ofHours(2))),
+                Timestamp.from(Instant.now().minus(Duration.ofHours(1))), me.getId());
+        assertEquals("Web", overviewOf(me).lastClient());
+    }
 }

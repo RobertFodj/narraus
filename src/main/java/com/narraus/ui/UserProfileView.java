@@ -125,6 +125,7 @@ public class UserProfileView extends VerticalLayout implements HasUrlParameter<L
         box.add(new Span("Tunnus: " + overview.username()));
         box.add(new Span("Kilpailut: " + (overview.events().isEmpty() ? "ei yhtään"
                 : overview.events().stream().map(e -> e.getName()).collect(java.util.stream.Collectors.joining(", ")))));
+        box.add(new Span("Viimeksi käytetty: " + AdminView.lastUsedText(overview)));
         box.add(new Span("Laite: " + overview.clientLabel()));
         box.add(new Span("Ilmoituslaitteita: " + overview.pushDevices()));
         return box;
