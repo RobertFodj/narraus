@@ -35,7 +35,8 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
         login.setAction("login");
         login.setForgotPasswordButtonVisible(false);
 
-        add(new H1("🎣 Narraus"), login, new RouterLink("Ei vielä tunnusta? Rekisteröidy", RegisterView.class));
+        H1 title = new H1("🎣 Narraus");
+        add(title, login, new RouterLink("Ei vielä tunnusta? Rekisteröidy", RegisterView.class));
     }
 
     @Override

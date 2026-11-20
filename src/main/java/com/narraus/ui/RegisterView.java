@@ -27,7 +27,10 @@ public class RegisterView extends VerticalLayout {
         setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
         TextField username = new TextField("Käyttäjätunnus");
+        username.setHelperText("Ei sähköposti. Tunnus näkyy vain sinulle ja sitä käytetään kirjautumiseen.");
         TextField displayName = new TextField("Näytettävä nimi");
+        displayName.setRequired(true);
+        displayName.setHelperText("Tämä nimi näkyy muille käyttäjille.");
         PasswordField password = new PasswordField("Salasana (väh. 8 merkkiä)");
         PasswordField confirm = new PasswordField("Salasana uudelleen");
         for (var f : new com.vaadin.flow.component.textfield.TextFieldBase<?, ?>[]{username, displayName, password, confirm}) {
@@ -49,7 +52,8 @@ public class RegisterView extends VerticalLayout {
         });
         register.addThemeVariants(ButtonVariant.PRIMARY);
 
-        add(new H1("🎣 Liity Narraukseen"), username, displayName, password, confirm, register,
+        H1 title = new H1("🎣 Liity Narraukseen");
+        add(title, username, displayName, password, confirm, register,
                 new RouterLink("Minulla on jo tunnus", LoginView.class));
     }
 }

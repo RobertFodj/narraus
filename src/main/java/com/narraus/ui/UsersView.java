@@ -1,7 +1,6 @@
 package com.narraus.ui;
 
 import com.narraus.domain.AppUser;
-import com.narraus.domain.ChatService;
 import com.narraus.domain.UserService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -15,36 +14,40 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.PermitAll;
 
-@Route(value = "people", layout = MainLayout.class)
-@PageTitle("Ihmiset | Narraus")
+@Route(value = "users", layout = MainLayout.class)
+@RouteAlias(value = "people", layout = MainLayout.class) // vanha osoite toimii edelleen
+@PageTitle("Käyttäjät | Narraus")
 @PermitAll
-public class PeopleView extends VerticalLayout {
+public class UsersView extends VerticalLayout {
 
     private final UserService users;
-    private final ChatService chats;
     private final CurrentUser currentUser;
     private final VerticalLayout results = new VerticalLayout();
 
-    public PeopleView(UserService users, ChatService chats, CurrentUser currentUser) {
+    public UsersView(UserService users, CurrentUser currentUser) {
         this.users = users;
-        this.chats = chats;
         this.currentUser = currentUser;
         setMaxWidth("36em");
         getStyle().set("margin", "0 auto");
 
         TextField search = new TextField();
-        search.setPlaceholder("Hae kalastajia nimellä…");
+        search.setPlaceholder("Hae käyttäjiä nimellä…");
         search.setPrefixComponent(VaadinIcon.SEARCH.create());
         search.setWidthFull();
         search.setValueChangeMode(ValueChangeMode.LAZY);
         search.addValueChangeListener(e -> refresh(e.getValue()));
 
         results.setPadding(false);
-        add(new H2("Ihmiset"), search, results);
+        // Otsikko ja haku ovat "saari", joka pysyy paikallaan kun lista vierii sen alla
+        VerticalLayout bar = new VerticalLayout(new H2("Käyttäjät"), search);
+        bar.addClassName("island");
+        bar.setPadding(false);
+        bar.setSpacing(false);
+        add(bar, results);
         refresh("");
     }
 
@@ -53,31 +56,31 @@ public class PeopleView extends VerticalLayout {
         AppUser me = currentUser.get();
         for (AppUser u : users.search(query)) {
             if (u.equals(me)) continue;
-            Span name = new Span(u.getDisplayName() + " (@" + u.getUsername() + ")");
-            name.getStyle().set("flex-grow", "1");
+            // Nimi on nappi: avaa käyttäjän oman sivun (samat tiedot ja julkaisut kuin profiilissa)
+            Button name = new Button(u.getDisplayName(),
+                    e -> UI.getCurrent().navigate(UserProfileView.class, u.getId()));
+            name.addThemeVariants(ButtonVariant.TERTIARY);
+            name.getStyle().set("flex-grow", "1").set("justify-content", "flex-start").set("font-weight", "600");
             Span followers = new Span(users.followerCount(u) + " seuraajaa");
             followers.getStyle().set("opacity", "0.7");
 
-            Button follow = new Button();
-            follow.addThemeVariants(ButtonVariant.SMALL);
-            Runnable label = () -> follow.setText(users.isFollowing(me, u) ? "Lopeta seuraaminen" : "Seuraa");
-            follow.addClickListener(e -> {
-                users.toggleFollow(me, u);
-                label.run();
-            });
-            label.run();
-
-            Button message = new Button("Viesti", VaadinIcon.CHAT.create(), e -> {
-                var c = chats.openDirect(me, u);
-                UI.getCurrent().navigate(ChatView.class, QueryParameters.of("c", String.valueOf(c.getId())));
-            });
-            message.addThemeVariants(ButtonVariant.SMALL);
-
-            HorizontalLayout row = new HorizontalLayout(name, followers, follow, message);
+            HorizontalLayout row = new HorizontalLayout(name, followers);
             row.setWidthFull();
             row.setAlignItems(FlexComponent.Alignment.CENTER);
+
+            // Seuraa-nappi oikeassa laidassa vain, jos et vielä seuraa. Seuraamisen jälkeen nappia ei ole.
+            if (!users.isFollowing(me, u)) {
+                Button follow = new Button("Seuraa");
+                follow.addThemeVariants(ButtonVariant.SMALL);
+                follow.addClickListener(e -> {
+                    users.toggleFollow(me, u);
+                    followers.setText(users.followerCount(u) + " seuraajaa");
+                    row.remove(follow);
+                });
+                row.add(follow);
+            }
             results.add(row);
         }
-        if (results.getComponentCount() == 0) results.add(new Span("Ketään ei löytynyt."));
+        if (results.getComponentCount() == 0) results.add(new Span("Käyttäjiä ei löytynyt."));
     }
 }

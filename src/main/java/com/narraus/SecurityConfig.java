@@ -16,6 +16,8 @@ class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // Sovelluksen kuvakkeet ovat julkisia (kirjautumissivu tarvitsee ne ennen kirjautumista)
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/icons/**").permitAll());
         http.with(VaadinSecurityConfigurer.vaadin(), c -> c.loginView(LoginView.class));
         return http.build();
     }

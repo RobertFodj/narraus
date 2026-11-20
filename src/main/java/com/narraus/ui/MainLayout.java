@@ -1,5 +1,13 @@
 package com.narraus.ui;
 
+import com.narraus.domain.AppUser;
+import com.narraus.domain.ChatBroadcaster;
+import com.narraus.domain.FeedBroadcaster;
+import com.narraus.domain.UnreadService;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
@@ -10,28 +18,114 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.router.AfterNavigationEvent;
+import com.vaadin.flow.router.AfterNavigationObserver;
+import com.vaadin.flow.component.UIDetachedException;
+import com.vaadin.flow.shared.Registration;
 import jakarta.annotation.security.PermitAll;
+import java.util.ArrayList;
+import java.util.List;
 
 @PermitAll
-public class MainLayout extends AppLayout {
+public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
-    public MainLayout(CurrentUser currentUser) {
+    private final UnreadService unread;
+    private final ChatBroadcaster chatBroadcaster;
+    private final FeedBroadcaster feedBroadcaster;
+    private final AppUser me;
+
+    private final Span feedBadge = badge();
+    private final Span chatBadge = badge();
+    private final List<Registration> registrations = new ArrayList<>();
+
+    public MainLayout(CurrentUser currentUser, UnreadService unread, ChatBroadcaster chatBroadcaster,
+                      FeedBroadcaster feedBroadcaster) {
+        this.unread = unread;
+        this.chatBroadcaster = chatBroadcaster;
+        this.feedBroadcaster = feedBroadcaster;
+        this.me = currentUser.get();
+
         H1 title = new H1("🎣 Narraus");
         title.getStyle().set("font-size", "1.25rem").set("margin", "0");
         addToNavbar(new DrawerToggle(), title);
 
         SideNav nav = new SideNav();
-        nav.addItem(new SideNavItem("Saaliit", FeedView.class, VaadinIcon.PICTURE.create()));
-        nav.addItem(new SideNavItem("Ihmiset", PeopleView.class, VaadinIcon.USERS.create()));
-        nav.addItem(new SideNavItem("Keskustelut", ChatView.class, VaadinIcon.CHAT.create()));
+        SideNavItem feed = new SideNavItem("Saaliit", FeedView.class, VaadinIcon.PICTURE.create());
+        feed.setSuffixComponent(feedBadge);
+        SideNavItem chat = new SideNavItem("Keskustelut", ChatView.class, VaadinIcon.CHAT.create());
+        chat.setSuffixComponent(chatBadge);
+        nav.addItem(feed);
+        nav.addItem(new SideNavItem("Käyttäjät", UsersView.class, VaadinIcon.USERS.create()));
+        nav.addItem(chat);
+        nav.addItem(new SideNavItem("Kartta", MapView.class, VaadinIcon.MAP_MARKER.create()));
+        nav.addItem(new SideNavItem("Kilpailut", EventsView.class, VaadinIcon.TROPHY.create()));
+        nav.addItem(new SideNavItem("Oma sivu", ProfileView.class, VaadinIcon.USER.create()));
         addToDrawer(nav);
 
         Button logout = new Button("Kirjaudu ulos", VaadinIcon.SIGN_OUT.create(), e -> currentUser.logout());
         logout.addThemeVariants(ButtonVariant.TERTIARY);
-        HorizontalLayout footer = new HorizontalLayout(new Span(currentUser.get().getDisplayName()), logout);
+        HorizontalLayout footer = new HorizontalLayout(new Span(me.getDisplayName()), logout);
         footer.setPadding(true);
         footer.setSpacing(true);
         footer.getStyle().set("flex-wrap", "wrap");
         addToDrawer(footer);
+
+        refreshBadges();
+    }
+
+    private static Span badge() {
+        Span s = new Span();
+        s.addClassName("nav-badge");
+        s.setVisible(false);
+        return s;
+    }
+
+    /** Näyttää merkin vain, kun uutta on; 1-9 numerona ja siitä ylöspäin "9+". */
+    static String badgeText(long count) {
+        return count > 9 ? "9+" : String.valueOf(count);
+    }
+
+    private static void show(Span badge, long count, String description) {
+        badge.setVisible(count > 0);
+        if (count > 0) {
+            badge.setText(badgeText(count));
+            badge.getElement().setAttribute("role", "img");
+            badge.getElement().setAttribute("aria-label", count + " " + description);
+        }
+    }
+
+    void refreshBadges() {
+        show(feedBadge, unread.newPosts(me), "uutta julkaisua");
+        show(chatBadge, unread.unreadMessages(me), "lukematonta viestiä");
+    }
+
+    @Override
+    public void afterNavigation(AfterNavigationEvent event) {
+        refreshBadges();
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        UI ui = attachEvent.getUI();
+        registrations.add(chatBroadcaster.register(id -> access(ui)));
+        registrations.add(feedBroadcaster.register(id -> access(ui)));
+        registrations.add(ComponentUtil.addListener(ui, UnreadChanged.class, e -> refreshBadges()));
+        refreshBadges();
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        registrations.forEach(Registration::remove);
+        registrations.clear();
+        super.onDetach(detachEvent);
+    }
+
+    private void access(UI ui) {
+        try {
+            ui.access(this::refreshBadges);
+        } catch (UIDetachedException ignored) {
+            // selain on jo suljettu
+        }
     }
 }
