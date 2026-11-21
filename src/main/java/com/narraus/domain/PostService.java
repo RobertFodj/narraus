@@ -47,13 +47,15 @@ public class PostService {
     private final Path uploadDir;
     private final AdminPolicy adminPolicy;
     private final NotificationService notifications;
+    private final ModerationService moderation;
 
     PostService(PostRepository posts, LikeRepository likes, CommentRepository comments, EventFishReviewRepository eventReviews, FollowRepository follows,
                 FeedBroadcaster feedBroadcaster, ApplicationEventPublisher events, AdminPolicy adminPolicy,
-                NotificationService notifications,
+                NotificationService notifications, ModerationService moderation,
                 @Value("${narraus.upload-dir}") String uploadDir) throws IOException {
         this.adminPolicy = adminPolicy;
         this.notifications = notifications;
+        this.moderation = moderation;
         this.events = events;
         this.feedBroadcaster = feedBroadcaster;
         this.posts = posts;
@@ -124,6 +126,8 @@ public class PostService {
         String newSpecies = requireSpecies(species);
         validateCoordinates(latitude, longitude);
         Instant when = caughtAt == null ? null : requireNotFuture(caughtAt);
+        // Ylläpitäjän muokkaus kirjataan ennen muutosta (muistiin jää alkuperäinen sisältö); tekijä saa ilmoituksen
+        if (!post.getAuthor().equals(requester)) moderation.record(requester, ModerationKind.EDITED, post, null);
 
         String oldFile = post.getPhotoFile();
         String file = oldFile;
@@ -147,7 +151,17 @@ public class PostService {
     /** Poistaa julkaisun tykkäyksineen ja kuvineen. Vain tekijä tai ylläpitäjä saa poistaa (SecurityException muille). */
     @Transactional
     public void delete(Long postId, AppUser requester) {
+        delete(postId, requester, null);
+    }
+
+    /**
+     * Poistaa julkaisun. Jos ylläpitäjä poistaa toisen käyttäjän julkaisun, päätös kirjataan (syy näkyy tekijälle)
+     * ja tekijä saa ilmoituksen, jonka kautta hän voi valittaa tai antaa palautetta.
+     */
+    @Transactional
+    public void delete(Long postId, AppUser requester, String reason) {
         CatchPost post = ownedBy(postId, requester);
+        if (!post.getAuthor().equals(requester)) moderation.record(requester, ModerationKind.DELETED, post, reason);
         String file = post.getPhotoFile();
         likes.deleteByPost(post);
         comments.deleteByPost(post);

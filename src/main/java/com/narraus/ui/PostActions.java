@@ -11,6 +11,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 
 /** Julkaisun Muokkaa- ja Poista-napit (oma julkaisu tai ylläpitäjälle kenen tahansa julkaisu). */
 final class PostActions {
@@ -40,9 +41,19 @@ final class PostActions {
         confirm.setCancelText("Peruuta");
         confirm.setConfirmText("Poista");
         confirm.setConfirmButtonTheme("error primary");
+        // Ylläpitäjä poistaa toisen julkaisun: syy kirjataan ja näkyy tekijälle, joka voi valittaa
+        TextField reason = null;
+        if (!post.getAuthor().equals(requester)) {
+            reason = new TextField("Syy (näkyy julkaisun tekijälle, valinnainen)");
+            reason.setMaxLength(500);
+            reason.setWidthFull();
+            reason.addClassName("moderation-reason-field");
+            confirm.add(reason);
+        }
+        TextField reasonField = reason;
         confirm.addConfirmListener(e -> {
             try {
-                posts.delete(post.getId(), requester);
+                posts.delete(post.getId(), requester, reasonField == null ? null : reasonField.getValue());
             } catch (SecurityException | IllegalArgumentException ex) {
                 Notification.show(ex.getMessage()).addThemeVariants(NotificationVariant.ERROR);
             }

@@ -47,9 +47,12 @@ public class AdminView extends VerticalLayout implements BeforeEnterObserver {
     private final CurrentUser currentUser;
     private final UserService users;
     private final SystemMessageService systemMessages;
+    private final com.narraus.domain.ModerationService moderation;
 
     public AdminView(AdminService adminService, AdminPolicy adminPolicy, CurrentUser currentUser,
-                     UserService users, SystemMessageService systemMessages) {
+                     UserService users, SystemMessageService systemMessages,
+                     com.narraus.domain.ModerationService moderation) {
+        this.moderation = moderation;
         this.users = users;
         this.systemMessages = systemMessages;
         this.adminService = adminService;
@@ -108,7 +111,34 @@ public class AdminView extends VerticalLayout implements BeforeEnterObserver {
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        add(new BackButton(ProfileView.class), header, summary, filter, grid);
+        add(new BackButton(ProfileView.class), header, summary, filter, grid, appealsSection(me));
+    }
+
+    /** Käyttäjien valitukset ja palaute ylläpitäjän päätöksistä (julkaisun poisto tai muokkaus). */
+    private VerticalLayout appealsSection(com.narraus.domain.AppUser me) {
+        VerticalLayout box = new VerticalLayout();
+        box.setPadding(false);
+        box.addClassName("appeals-section");
+        box.add(new com.vaadin.flow.component.html.H3("Valitukset ja palaute"));
+        var appeals = moderation.allAppeals(me);
+        if (appeals.isEmpty()) {
+            box.add(new com.vaadin.flow.component.html.Paragraph("Ei valituksia."));
+            return box;
+        }
+        Grid<com.narraus.domain.ModerationAppeal> g = new Grid<>();
+        g.setItems(appeals);
+        g.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        g.addColumn(a -> a.getAuthor().getDisplayName()).setHeader("Käyttäjä").setAutoWidth(true);
+        g.addColumn(a -> TIME.format(a.getCreatedAt())).setHeader("Aika").setAutoWidth(true);
+        g.addColumn(a -> (a.getAction().getKind() == com.narraus.domain.ModerationKind.DELETED
+                ? "Poistettu: " : "Muokattu: ") + Species.display(a.getAction().getSpecies()))
+                .setHeader("Päätös").setAutoWidth(true);
+        g.addColumn(a -> a.getAction().getReason() == null ? "–" : a.getAction().getReason())
+                .setHeader("Syy").setAutoWidth(true);
+        g.addColumn(com.narraus.domain.ModerationAppeal::getText).setHeader("Viesti").setAutoWidth(true).setFlexGrow(1);
+        g.setHeight("18em");
+        box.add(g);
+        return box;
     }
 
     static String eventNames(List<CompetitionEvent> events) {

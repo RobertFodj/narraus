@@ -63,6 +63,20 @@ public class NotificationService {
         }
     }
 
+    /** Ylläpitäjä poisti tai muokkasi käyttäjän julkaisua: käyttäjä saa ilmoituksen ja voi valittaa. */
+    @Transactional
+    public void moderated(ModerationAction action) {
+        NotificationType type = action.getKind() == ModerationKind.DELETED
+                ? NotificationType.MODERATION_DELETED : NotificationType.MODERATION_EDITED;
+        save(new AppNotification(action.getAuthor(), action.getActor(), type, action.getId(), action.getSpecies()));
+    }
+
+    /** Käyttäjä lähetti valituksen tai palautteen: ilmoitus ylläpitäjälle. */
+    @Transactional
+    public void appealed(AppUser admin, ModerationAction action, AppUser from) {
+        save(new AppNotification(admin, from, NotificationType.APPEAL, action.getId(), action.getSpecies()));
+    }
+
     private void save(AppNotification n) {
         notifications.save(n);
         broadcaster.broadcast(n.getRecipient().getId());

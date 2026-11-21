@@ -1,6 +1,7 @@
 package com.narraus.ui;
 
 import com.narraus.domain.AppUser;
+import com.narraus.domain.ModerationService;
 import com.narraus.domain.NotificationService;
 import com.narraus.domain.NotificationService.Entry;
 import com.vaadin.flow.component.UI;
@@ -27,12 +28,14 @@ class NotificationBell extends Button {
             .withZone(ZoneId.systemDefault());
 
     private final NotificationService notifications;
+    private final ModerationService moderation;
     private final AppUser me;
     private final Span badge = new Span();
 
-    NotificationBell(NotificationService notifications, AppUser me) {
+    NotificationBell(NotificationService notifications, ModerationService moderation, AppUser me) {
         super(VaadinIcon.BELL.create());
         this.notifications = notifications;
+        this.moderation = moderation;
         this.me = me;
         addThemeVariants(ButtonVariant.TERTIARY);
         addClassName("notification-bell");
@@ -101,6 +104,9 @@ class NotificationBell extends Button {
             case FOLLOWER -> who + " alkoi seurata sinua";
             case LIKE -> who + " tykkäsi julkaisustasi: " + Species.display(entry.label());
             case EVENT -> "Uusi kilpailu: " + entry.label();
+            case MODERATION_DELETED -> "Ylläpitäjä poisti julkaisusi: " + Species.display(entry.label());
+            case MODERATION_EDITED -> "Ylläpitäjä muokkasi julkaisuasi: " + Species.display(entry.label());
+            case APPEAL -> who + " lähetti valituksen tai palautteen: " + Species.display(entry.label());
         };
     }
 
@@ -114,6 +120,10 @@ class NotificationBell extends Button {
             case FOLLOWER -> ui.navigate(UserProfileView.class, entry.actor().getId());
             case LIKE -> ui.navigate(FeedView.class, QueryParameters.of("post", String.valueOf(entry.targetId())));
             case EVENT -> ui.navigate(EventView.class, entry.targetId());
+            // Ylläpitäjän päätös: näytetään, mitä tehtiin, ja käyttäjä voi valittaa tai antaa palautetta
+            case MODERATION_DELETED, MODERATION_EDITED -> moderation.actionFor(entry.targetId(), me)
+                    .ifPresent(a -> new ModerationDialog(moderation, me, a).open());
+            case APPEAL -> ui.navigate(AdminView.class);
         }
     }
 }

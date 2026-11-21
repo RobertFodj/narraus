@@ -144,3 +144,15 @@ interface NotificationRepository extends JpaRepository<AppNotification, Long> {
     @Query("update AppNotification n set n.readAt = :now where n.recipient = :user and n.readAt is null")
     int markAllRead(@Param("user") AppUser user, @Param("now") Instant now);
 }
+
+interface ModerationActionRepository extends JpaRepository<ModerationAction, Long> {
+    void deleteByAuthor(AppUser author);
+}
+
+interface ModerationAppealRepository extends JpaRepository<ModerationAppeal, Long> {
+    List<ModerationAppeal> findByActionOrderByCreatedAt(ModerationAction action);
+    long countByAction(ModerationAction action);
+    List<ModerationAppeal> findTop200ByOrderByCreatedAtDesc();
+    void deleteByAuthor(AppUser author);
+    void deleteByActionAuthor(AppUser author);
+}

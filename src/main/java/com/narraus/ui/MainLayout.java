@@ -4,6 +4,7 @@ import com.narraus.domain.AdminPolicy;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.ChatBroadcaster;
 import com.narraus.domain.FeedBroadcaster;
+import com.narraus.domain.ModerationService;
 import com.narraus.domain.NotificationBroadcaster;
 import com.narraus.domain.NotificationService;
 import com.narraus.domain.SystemMessage;
@@ -67,7 +68,8 @@ public class MainLayout extends MobileMainLayout {
     public MainLayout(CurrentUser currentUser, UnreadService unread, ChatBroadcaster chatBroadcaster,
                       FeedBroadcaster feedBroadcaster, UserService users, AdminPolicy adminPolicy,
                       SystemMessageBroadcaster systemBroadcaster, SystemMessageService systemMessages,
-                      NotificationService notificationService, NotificationBroadcaster notificationBroadcaster) {
+                      NotificationService notificationService, NotificationBroadcaster notificationBroadcaster,
+                      ModerationService moderationService) {
         this.notificationBroadcaster = notificationBroadcaster;
         this.systemBroadcaster = systemBroadcaster;
         this.systemMessages = systemMessages;
@@ -76,7 +78,7 @@ public class MainLayout extends MobileMainLayout {
         this.chatBroadcaster = chatBroadcaster;
         this.feedBroadcaster = feedBroadcaster;
         this.me = currentUser.get();
-        this.bell = new NotificationBell(notificationService, me);
+        this.bell = new NotificationBell(notificationService, moderationService, me);
 
         // Valikko syntyy Viritinin MobileMainLayoutin avulla näkymien @MenuItem-merkinnöistä:
         // puhelimella pystyssä alapalkki, muuten sivupaneeli
