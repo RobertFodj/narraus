@@ -657,3 +657,58 @@ body:has(.chat-view.chat-open) vaadin-app-layout .mobile-content {
 .catch-card.post-focus {
   animation: post-focus-pulse 2.5s ease-out;
 }
+
+/* ---------- Kellokuvake ja ilmoituslista ---------- */
+.notification-bell {
+  position: relative;
+}
+
+.notification-bell .nav-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.notification-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--vaadin-border-color-secondary, rgba(0, 0, 0, 0.08));
+  cursor: pointer;
+}
+
+.notification-row.notification-unread .notification-text {
+  font-weight: 700;
+}
+
+.notification-time {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+/* Ylläpitäjän pikapainikkeet kotisivulla */
+.admin-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Käyttöehdot ja tietosuoja */
+.legal {
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+.legal h3 {
+  margin: 1.2em 0 0.3em;
+}
+
+.legal h4 {
+  margin: 1em 0 0.3em;
+}
+
+.legal-updated {
+  opacity: 0.7;
+  margin: 0 0 0.5em;
+}

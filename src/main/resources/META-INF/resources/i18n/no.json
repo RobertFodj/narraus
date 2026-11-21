@@ -313,5 +313,11 @@
  "Voittaa se, jolla on painavin kala.": "Den som har den tyngste fisken, vinner.",
  "Voittaa se, jolla on pisin kala.": "Den som har den lengste fisken, vinner.",
  "Voittaa se, jolla on suurin ympärysmitta.": "Den som har den største omkretsen, vinner.",
- "Ilmoitukset eivät toimi tässä selaimessa. iPhonessa lisää sovellus ensin aloitusnäyttöön (Jaa → Lisää Koti-valikkoon).": "Varsler fungerer ikke i denne nettleseren. På iPhone: legg først appen til på Hjem-skjermen (Del → Legg til på Hjem-skjerm)."
+ "Ilmoitukset eivät toimi tässä selaimessa. iPhonessa lisää sovellus ensin aloitusnäyttöön (Jaa → Lisää Koti-valikkoon).": "Varsler fungerer ikke i denne nettleseren. På iPhone: legg først appen til på Hjem-skjermen (Del → Legg til på Hjem-skjerm).",
+ "Ei ilmoituksia.": "Ingen varsler.",
+ "{0} alkoi seurata sinua": "{0} begynte å følge deg",
+ "{0} tykkäsi julkaisustasi: {1}": "{0} likte innlegget ditt: {1}",
+ "Uusi kilpailu: {0}": "Ny konkurranse: {0}",
+ "Narraus: {0}": "Narraus: {0}",
+ "Käyttöehdot ja tietosuoja": "Vilkår og personvern (på finsk)"
 }

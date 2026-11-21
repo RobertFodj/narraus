@@ -131,3 +131,16 @@ interface SystemMessageRepository extends JpaRepository<SystemMessage, Long> {
     @Query("update SystemMessage m set m.readAt = :now where m.recipient = :user and m.readAt is null")
     int markAllRead(@Param("user") AppUser user, @Param("now") Instant now);
 }
+
+interface NotificationRepository extends JpaRepository<AppNotification, Long> {
+    List<AppNotification> findTop50ByRecipientOrderByCreatedAtDesc(AppUser recipient);
+    long countByRecipientAndReadAtIsNull(AppUser recipient);
+    boolean existsByRecipientAndActorAndTypeAndTargetId(AppUser recipient, AppUser actor, NotificationType type, Long targetId);
+    boolean existsByRecipientAndActorAndTypeAndCreatedAtAfter(AppUser recipient, AppUser actor, NotificationType type, Instant after);
+    void deleteByRecipient(AppUser recipient);
+    void deleteByActor(AppUser actor);
+
+    @Modifying
+    @Query("update AppNotification n set n.readAt = :now where n.recipient = :user and n.readAt is null")
+    int markAllRead(@Param("user") AppUser user, @Param("now") Instant now);
+}

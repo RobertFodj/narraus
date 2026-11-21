@@ -68,7 +68,7 @@ public class ProfileView extends VerticalLayout {
     }
 
     /** Osiot, jotka aukeavat napeista; sisältö rakennetaan vasta kun osio avataan. */
-    enum Section { NOTIFICATIONS, POSTS, FOLLOWERS, ACCOUNT }
+    enum Section { NOTIFICATIONS, POSTS, FOLLOWERS, ACCOUNT, LEGAL }
 
     private Section open;
 
@@ -103,7 +103,8 @@ public class ProfileView extends VerticalLayout {
         buttons.add(sectionButton("Ilmoitukset", VaadinIcon.BELL, Section.NOTIFICATIONS),
                 sectionButton("Omat julkaisut", VaadinIcon.PICTURE, Section.POSTS),
                 sectionButton("Seuraajat", VaadinIcon.USERS, Section.FOLLOWERS),
-                sectionButton("Tilin muokkaus", VaadinIcon.USER_CARD, Section.ACCOUNT), language);
+                sectionButton("Tilin muokkaus", VaadinIcon.USER_CARD, Section.ACCOUNT), language,
+                sectionButton("Käyttöehdot ja tietosuoja", VaadinIcon.FILE_TEXT, Section.LEGAL));
         add(buttons);
 
         if (open != null) {
@@ -112,6 +113,7 @@ public class ProfileView extends VerticalLayout {
                 case POSTS -> postsPanel(me);
                 case FOLLOWERS -> followersPanel(me);
                 case ACCOUNT -> accountPanel();
+                case LEGAL -> legalPanel();
             };
             panel.addClassName("profile-panel");
             add(panel);
@@ -169,6 +171,24 @@ public class ProfileView extends VerticalLayout {
             box.add(b);
         }
         return box;
+    }
+
+    private static String legalHtml;
+
+    /** Käyttöehdot ja tietosuojaseloste (suomeksi; teksti on tiedostossa legal/kayttoehdot-ja-tietosuoja.html). */
+    private VerticalLayout legalPanel() {
+        if (legalHtml == null) {
+            try (var in = ProfileView.class.getResourceAsStream("/legal/kayttoehdot-ja-tietosuoja.html")) {
+                legalHtml = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            } catch (java.io.IOException | NullPointerException e) {
+                throw new IllegalStateException("Käyttöehtotiedosto puuttuu", e);
+            }
+        }
+        VerticalLayout panel = new VerticalLayout(new H3("Käyttöehdot ja tietosuoja"),
+                new com.vaadin.flow.component.Html(legalHtml));
+        panel.setPadding(false);
+        panel.addClassName("legal-panel");
+        return panel;
     }
 
     /** Tilin muokkaus: selitys sekä Muokkaa tiliä- ja Poista tili -napit. */

@@ -4,6 +4,8 @@ import com.narraus.domain.AdminPolicy;
 import com.narraus.domain.AppUser;
 import com.narraus.domain.ChatBroadcaster;
 import com.narraus.domain.FeedBroadcaster;
+import com.narraus.domain.NotificationBroadcaster;
+import com.narraus.domain.NotificationService;
 import com.narraus.domain.SystemMessage;
 import com.narraus.domain.SystemMessageBroadcaster;
 import com.narraus.domain.SystemMessageService;
@@ -46,6 +48,8 @@ public class MainLayout extends MobileMainLayout {
     private final SystemMessageBroadcaster systemBroadcaster;
     private final SystemMessageService systemMessages;
     private Notification narrausPopup;
+    private final NotificationBroadcaster notificationBroadcaster;
+    private final NotificationBell bell;
     private final AppUser me;
 
     /** Asennettu sovellus (PWA) avautuu omassa ikkunassaan: display-mode standalone (iOS: navigator.standalone). */
@@ -62,7 +66,9 @@ public class MainLayout extends MobileMainLayout {
 
     public MainLayout(CurrentUser currentUser, UnreadService unread, ChatBroadcaster chatBroadcaster,
                       FeedBroadcaster feedBroadcaster, UserService users, AdminPolicy adminPolicy,
-                      SystemMessageBroadcaster systemBroadcaster, SystemMessageService systemMessages) {
+                      SystemMessageBroadcaster systemBroadcaster, SystemMessageService systemMessages,
+                      NotificationService notificationService, NotificationBroadcaster notificationBroadcaster) {
+        this.notificationBroadcaster = notificationBroadcaster;
         this.systemBroadcaster = systemBroadcaster;
         this.systemMessages = systemMessages;
         this.users = users;
@@ -70,6 +76,7 @@ public class MainLayout extends MobileMainLayout {
         this.chatBroadcaster = chatBroadcaster;
         this.feedBroadcaster = feedBroadcaster;
         this.me = currentUser.get();
+        this.bell = new NotificationBell(notificationService, me);
 
         // Valikko syntyy Viritinin MobileMainLayoutin avulla näkymien @MenuItem-merkinnöistä:
         // puhelimella pystyssä alapalkki, muuten sivupaneeli
@@ -146,7 +153,15 @@ public class MainLayout extends MobileMainLayout {
         }
     }
 
+    /** Kellokuvake on joka sivun otsikkorivin oikeassa reunassa (otsikkorivin apukomponentit tyhjennetään sivunvaihdossa). */
+    @Override
+    protected void showContent(com.vaadin.flow.component.Component content) {
+        super.showContent(content);
+        addNavbarHelper(bell);
+    }
+
     void refreshBadges() {
+        bell.refresh();
         long posts = unread.newPosts(me);
         long messages = unread.unreadMessages(me);
         show(feedBadge, posts, "uutta julkaisua");
@@ -178,6 +193,9 @@ public class MainLayout extends MobileMainLayout {
                     // selain on jo suljettu
                 }
             }
+        }));
+        registrations.add(notificationBroadcaster.register(userId -> {
+            if (me.getId().equals(userId)) access(ui); // uusi ilmoitus (seuraaja, tykkäys, kilpailu)
         }));
         registrations.add(ComponentUtil.addListener(ui, UnreadChanged.class, e -> refreshBadges()));
         refreshBadges();

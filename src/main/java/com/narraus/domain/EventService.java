@@ -46,10 +46,12 @@ public class EventService {
     private final PostRepository posts;
     private final AdminPolicy admin;
     private final EventBroadcaster broadcaster;
+    private final NotificationService notifications;
 
     EventService(CompetitionEventRepository events, EventParticipantRepository participants,
                  EventFishReviewRepository reviews, EventMessageRepository messages, PostRepository posts,
-                 AdminPolicy admin, EventBroadcaster broadcaster) {
+                 AdminPolicy admin, EventBroadcaster broadcaster, NotificationService notifications) {
+        this.notifications = notifications;
         this.events = events;
         this.participants = participants;
         this.reviews = reviews;
@@ -74,8 +76,10 @@ public class EventService {
                                    EventMetric metric, String species, int countedFish) {
         requireAdmin(actor);
         Valid v = validate(name, description, startsAt, endsAt, metric, species, countedFish);
-        return events.save(new CompetitionEvent(v.name, v.description, startsAt, endsAt, metric, v.species,
-                v.countedFish, actor));
+        CompetitionEvent created = events.save(new CompetitionEvent(v.name, v.description, startsAt, endsAt, metric,
+                v.species, v.countedFish, actor));
+        notifications.newEvent(created, actor); // ilmoitus kaikille muille käyttäjille
+        return created;
     }
 
     @Transactional

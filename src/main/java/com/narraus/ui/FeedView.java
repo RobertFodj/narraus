@@ -50,7 +50,8 @@ public class FeedView extends VerticalLayout implements BeforeEnterObserver {
     private final com.narraus.domain.AdminPolicy adminPolicy;
 
     public FeedView(PostService posts, CurrentUser currentUser, UnreadService unread, FeedBroadcaster broadcaster,
-                    MapConfig mapConfig, GeocodingService geocoder, com.narraus.domain.AdminPolicy adminPolicy) {
+                    MapConfig mapConfig, GeocodingService geocoder, com.narraus.domain.AdminPolicy adminPolicy,
+                    com.narraus.domain.UserService users, com.narraus.domain.SystemMessageService systemMessages) {
         this.geocoder = geocoder;
         this.adminPolicy = adminPolicy;
         this.posts = posts;
@@ -81,10 +82,25 @@ public class FeedView extends VerticalLayout implements BeforeEnterObserver {
         bar.addClassName("island");
         bar.setPadding(false);
         bar.setSpacing(false);
+        // Ylläpitäjän pikapainikkeet kotisivulla: ylläpito ja Narraus-viestin lähetys
+        Div adminShortcuts = null;
+        if (adminPolicy.isAdmin(currentUser.get())) {
+            Button adminPage = new Button("Ylläpito", VaadinIcon.COG.create(),
+                    e -> UI.getCurrent().navigate(AdminView.class));
+            adminPage.addClassName("admin-shortcut-admin");
+            Button sendSystem = new Button("Lähetä Narraus-viesti", VaadinIcon.MEGAPHONE.create(),
+                    e -> new SystemMessageDialog(users, systemMessages, currentUser.get()).open());
+            sendSystem.addClassName("admin-shortcut-send");
+            for (Button b : List.of(adminPage, sendSystem)) b.addThemeVariants(ButtonVariant.SMALL);
+            adminShortcuts = new Div(adminPage, sendSystem);
+            adminShortcuts.addClassName("admin-shortcuts");
+        }
+
         mapBox.addClassName("feed-map");
         mapBox.setWidthFull();
         mapBox.setVisible(false);
-        add(bar, list, mapBox);
+        if (adminShortcuts != null) add(bar, adminShortcuts, list, mapBox);
+        else add(bar, list, mapBox);
         refresh();
         // Syöte katsottiin juuri: uudet julkaisut eivät ole enää "uusia"
         unread.markFeedSeen(currentUser.get());

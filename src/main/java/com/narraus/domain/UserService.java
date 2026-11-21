@@ -19,8 +19,11 @@ public class UserService implements UserDetailsService {
     private final FollowRepository follows;
     private final PasswordEncoder encoder;
     private final AdminPolicy admin;
+    private final NotificationService notifications;
 
-    UserService(UserRepository users, FollowRepository follows, PasswordEncoder encoder, AdminPolicy admin) {
+    UserService(UserRepository users, FollowRepository follows, PasswordEncoder encoder, AdminPolicy admin,
+                NotificationService notifications) {
+        this.notifications = notifications;
         this.users = users;
         this.follows = follows;
         this.encoder = encoder;
@@ -191,6 +194,9 @@ public class UserService implements UserDetailsService {
     public void toggleFollow(AppUser me, AppUser other) {
         if (me.equals(other)) return;
         if (follows.existsByFollowerAndFollowed(me, other)) follows.deleteByFollowerAndFollowed(me, other);
-        else follows.save(new Follow(me, other));
+        else {
+            follows.save(new Follow(me, other));
+            notifications.newFollower(other, me); // ilmoitus kellokuvakkeeseen
+        }
     }
 }

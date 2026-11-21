@@ -46,11 +46,14 @@ public class PostService {
     private final ApplicationEventPublisher events;
     private final Path uploadDir;
     private final AdminPolicy adminPolicy;
+    private final NotificationService notifications;
 
     PostService(PostRepository posts, LikeRepository likes, CommentRepository comments, EventFishReviewRepository eventReviews, FollowRepository follows,
                 FeedBroadcaster feedBroadcaster, ApplicationEventPublisher events, AdminPolicy adminPolicy,
+                NotificationService notifications,
                 @Value("${narraus.upload-dir}") String uploadDir) throws IOException {
         this.adminPolicy = adminPolicy;
+        this.notifications = notifications;
         this.events = events;
         this.feedBroadcaster = feedBroadcaster;
         this.posts = posts;
@@ -307,7 +310,10 @@ public class PostService {
     @Transactional
     public void toggleLike(CatchPost post, AppUser user) {
         if (likes.existsByPostAndUser(post, user)) likes.deleteByPostAndUser(post, user);
-        else likes.save(new PostLike(post, user));
+        else {
+            likes.save(new PostLike(post, user));
+            notifications.newLike(post.getAuthor(), user, post); // ilmoitus tekijälle
+        }
     }
 
     private static Instant requireNotFuture(Instant t) {
