@@ -246,4 +246,29 @@ class PostLinksTest {
                     .noneMatch(b -> "Poista".equals(b.getText()) || "Muokkaa".equals(b.getText())));
         }
     }
+
+    @Test
+    void adminButtonsOnTheFeedCards_areIconsOnly_butStillNamed() {
+        AppUser owner = TestData.newUser(users, "Omistaja");
+        CatchPost post = posts.create(owner, "Hauki", null, null, null, null, null, null, null);
+        admin();
+
+        try (var adminUser = app.newUser("robbe", "USER")) {
+            var window = adminUser.newWindow();
+            window.navigate(FeedView.class);
+
+            var card = window.find(VerticalLayout.class).all().stream()
+                    .filter(c -> ("post-" + post.getId()).equals(c.getId().orElse(""))).findFirst().orElseThrow();
+            var buttons = card.getElement().getChildren()
+                    .filter(c -> c.getClassList().contains("post-actions-compact"))
+                    .flatMap(c -> c.getChildren()).toList();
+            assertEquals(2, buttons.size(), "Muokkaa ja Poista");
+            for (var b : buttons) {
+                assertEquals("", b.getText(), "Ei tekstiä, vain kuvake");
+                assertTrue(b.getAttribute("aria-label") != null && b.getAttribute("title") != null, "Nimi säilyy");
+            }
+            assertEquals("Muokkaa", buttons.get(0).getAttribute("aria-label"));
+            assertEquals("Poista", buttons.get(1).getAttribute("aria-label"));
+        }
+    }
 }

@@ -20,16 +20,34 @@ final class PostActions {
 
     static HorizontalLayout row(PostService posts, CurrentUser currentUser, MapConfig mapConfig,
                                 GeocodingService geocoder, CatchPost post, Runnable onChanged) {
-        Button edit = new Button("Muokkaa", VaadinIcon.EDIT.create(),
-                e -> new CatchDialog(posts, currentUser, mapConfig, geocoder, post, onChanged).open());
+        return row(posts, currentUser, mapConfig, geocoder, post, onChanged, false);
+    }
+
+    /**
+     * {@code compact}: pelkät kuvakkeet (ei tekstiä), kun tilaa on vähän, esim. Saaliit-sivun kortissa. Napin nimi
+     * on silti saatavilla (aria-label ja title).
+     */
+    static HorizontalLayout row(PostService posts, CurrentUser currentUser, MapConfig mapConfig,
+                                GeocodingService geocoder, CatchPost post, Runnable onChanged, boolean compact) {
+        Button edit = compact ? new Button(VaadinIcon.EDIT.create()) : new Button("Muokkaa", VaadinIcon.EDIT.create());
+        edit.addClickListener(e -> new CatchDialog(posts, currentUser, mapConfig, geocoder, post, onChanged).open());
         edit.addThemeVariants(ButtonVariant.SMALL);
         edit.addClassName("post-edit");
-        Button delete = new Button("Poista", VaadinIcon.TRASH.create(),
-                e -> confirmDelete(posts, currentUser.get(), post, onChanged));
+        Button delete = compact ? new Button(VaadinIcon.TRASH.create()) : new Button("Poista", VaadinIcon.TRASH.create());
+        delete.addClickListener(e -> confirmDelete(posts, currentUser.get(), post, onChanged));
         delete.addThemeVariants(ButtonVariant.SMALL, ButtonVariant.ERROR);
         delete.addClassName("post-delete");
+        if (compact) {
+            for (var b : new Button[]{edit, delete}) b.addThemeVariants(ButtonVariant.TERTIARY);
+            edit.getElement().setAttribute("aria-label", "Muokkaa");
+            edit.getElement().setAttribute("title", "Muokkaa");
+            delete.getElement().setAttribute("aria-label", "Poista");
+            delete.getElement().setAttribute("title", "Poista");
+        }
         HorizontalLayout row = new HorizontalLayout(edit, delete);
         row.addClassName("post-actions");
+        row.setSpacing(false);
+        if (compact) row.addClassName("post-actions-compact");
         return row;
     }
 

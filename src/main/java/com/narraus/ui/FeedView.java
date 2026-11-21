@@ -205,7 +205,7 @@ public class FeedView extends VerticalLayout implements BeforeEnterObserver {
         CatchCard card = new CatchCard(posts, p, me, this::showOnMap);
         // Ylläpitäjä voi muokata ja poistaa kenen tahansa julkaisun
         if (adminPolicy.isAdmin(me)) {
-            card.add(PostActions.row(posts, currentUser, mapConfig, geocoder, p, this::refresh));
+            card.add(PostActions.row(posts, currentUser, mapConfig, geocoder, p, this::refresh, true));
         }
         list.add(card);
     }

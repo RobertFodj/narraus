@@ -712,3 +712,16 @@ body:has(.chat-view.chat-open) vaadin-app-layout .mobile-content {
   opacity: 0.7;
   margin: 0 0 0.5em;
 }
+
+/* Ylläpitäjän muokkaa/poista-merkit Saaliit-sivun kortissa: pelkät kuvakkeet, pienet ja kortin alareunassa */
+.post-actions-compact {
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+
+.post-actions-compact vaadin-button,
+.post-actions-compact .post-edit,
+.post-actions-compact .post-delete {
+  min-width: 0;
+  padding-inline: 6px;
+}
